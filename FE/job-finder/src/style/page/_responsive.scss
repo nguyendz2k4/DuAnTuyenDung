@@ -1,0 +1,37 @@
+$DESKTOP: "DESKTOP";
+$MEDIUM_DEVICE: "MEDIUM_DEVICE";
+$TABLET_DEVICE: "TABLET_DEVICE";
+$WIDE_MOBILE: "WIDE_MOBILE";
+$SMALL_DEVICE: "SMALL_DEVICE";
+
+@mixin respond-to($device) {
+    @if $device ==$DESKTOP {
+        @media (min-width: 1200px) {
+            @content;
+        }
+    }
+
+    @else if $device ==$MEDIUM_DEVICE {
+        @media (min-width: 992px) and (max-width: 1199px) {
+            @content;
+        }
+    }
+
+    @else if $device ==$TABLET_DEVICE {
+        @media (min-width: 768px) and (max-width: 991px) {
+            @content;
+        }
+    }
+
+    @else if $device ==$WIDE_MOBILE {
+        @media (min-width: 576px) and (max-width: 767px) {
+            @content;
+        }
+    }
+
+    @else if $device ==$SMALL_DEVICE {
+        @media (max-width: 575px) {
+            @content;
+        }
+    }
+}

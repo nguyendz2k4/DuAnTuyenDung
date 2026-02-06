@@ -1,0 +1,126 @@
+.joblist-dropdown {
+    position: absolute;
+    top: 50px; // nằm ngay dưới nút
+    left: 0;
+    width: 900px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    padding: 16px;
+    overflow: hidden;
+
+    .dropdown-content {
+        display: flex;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .column {
+        padding: 8px;
+    }
+
+    .group-column {
+        width: 30%;
+        border-right: 1px solid #eee;
+
+        .group-item {
+            /* ----- Thêm 3 dòng này vào ----- */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            /* ----------------------------- */
+
+            padding: 10px 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.2s;
+            font-size: 13px;
+
+            &:hover {
+                background-color: #f8f8f8;
+            }
+
+            &.active {
+                background-color: #e9f7ef;
+                color: #27ae60;
+                font-weight: 600;
+            }
+        }
+    }
+
+    .detail-column {
+        width: 70%;
+        padding-left: 16px;
+
+        .placeholder {
+            color: #999;
+            font-style: italic;
+        }
+
+        .job-section {
+            margin-bottom: 16px;
+
+            .job-title {
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+
+            .specialties {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+
+                .tag {
+                    border: 1px solid #ccc;
+                    border-radius: 20px;
+                    padding: 6px 12px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+
+                    &:hover {
+                        background-color: #eaf8f0;
+                        color: #27ae60;
+                        border-color: #27ae60;
+                    }
+                }
+            }
+        }
+    }
+
+    .dropdown-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 12px;
+        gap: 10px;
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            font-weight: 500;
+            transition: all 0.2s ease;
+
+            &.cancel {
+                border-color: #ccc;
+                background-color: #fff;
+
+                &:hover {
+                    background-color: #f4f4f4;
+                }
+            }
+
+            &.confirm {
+                background-color: #27ae60;
+                color: white;
+
+                &:hover {
+                    background-color: #219150;
+                }
+            }
+        }
+    }
+}

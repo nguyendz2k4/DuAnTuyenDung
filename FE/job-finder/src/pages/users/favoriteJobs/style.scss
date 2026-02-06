@@ -1,0 +1,234 @@
+.favorite-jobs-page {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .page-title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 30px;
+        color: #333;
+        border-bottom: 2px solid #00b14f; /* Thêm gạch chân xanh cho đẹp */
+        display: inline-block;
+        padding-bottom: 10px;
+    }
+
+    /* Loading Spinner (Copy từ trang chủ sang) */
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 300px;
+        width: 100%;
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #00b14f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: #f9f9f9;
+        border-radius: 12px;
+
+        p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .back-home-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #00b14f;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 177, 79, 0.2);
+
+            &:hover {
+                background-color: #009940;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0, 177, 79, 0.3);
+            }
+        }
+    }
+
+    .job-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Card to hơn chút */
+        gap: 20px;
+    }
+
+    /* --- BẮT ĐẦU STYLE CARD GIỐNG HỆT TRANG CHỦ --- */
+    .job-card {
+        position: relative;
+        background: #fff;
+        border-radius: 8px;
+        padding: 16px; /* Padding rộng rãi hơn */
+        border: 1px solid #eee;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex; /* QUAN TRỌNG: Để logo và chữ nằm ngang */
+        align-items: flex-start;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        opacity: 0;
+        animation: fadeInUp 0.5s ease-out forwards;
+
+        &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 177, 79, 0.15);
+            border-color: #c1e7d2;
+
+            .job-title a {
+                color: rgb(0, 177, 79);
+            }
+        }
+
+        /* 1. Logo bên trái */
+        .job-logo {
+            width: 80px; /* Cố định kích thước */
+            height: 80px;
+            padding: 5px;
+            margin-right: 16px;
+            border-radius: 8px;
+            border: 1px solid #e5e5e5;
+            flex-shrink: 0;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            img {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+            }
+        }
+
+        /* 2. Thông tin bên phải */
+        .job-info {
+            flex: 1;
+            min-width: 0;
+            padding-right: 30px; /* Chừa chỗ cho nút tim */
+
+            .job-title {
+                margin: 0 0 8px;
+                line-height: 1.4;
+                
+                a {
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2; /* Cắt dòng nếu dài quá 2 dòng */
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #333;
+                    text-decoration: none;
+                    transition: color 0.2s;
+                }
+            }
+
+            .company-name {
+                font-size: 14px;
+                color: #555;
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                
+                /* Style cho nhãn PRO */
+                .label-pro {
+                    background: linear-gradient(90deg, #ffaf40, #ff8c00);
+                    color: #fff;
+                    font-size: 10px;
+                    font-weight: 800;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    text-transform: uppercase;
+                }
+            }
+
+            /* Style các thẻ Badge (Lương, Địa điểm) */
+            .job-meta {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+
+                .salary,
+                .location {
+                    background: #f0f0f0;
+                    padding: 5px 10px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    color: #555;
+                    font-weight: 500;
+                }
+
+                .salary {
+                    color: #00b14f;
+                    background: #e5f7ed;
+                    font-weight: 600;
+                }
+            }
+        }
+
+        /* 3. Nút tim (Góc dưới phải thay vì góc trên) */
+        .save-icon {
+            background: #fff;
+            border: 1px solid #eee;
+            color: #ccc;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            position: absolute;
+            bottom: 16px; /* Đặt ở dưới đáy */
+            right: 16px;  /* Đặt bên phải */
+            z-index: 2;
+
+            &.active {
+                border-color: #00b14f;
+                color: #00b14f;
+                background: #f0fbf5;
+            }
+
+            &:hover {
+                background: #00b14f;
+                color: #fff;
+                border-color: #00b14f;
+                transform: scale(1.1);
+            }
+        }
+
+        /* Style riêng cho Card PRO */
+        &.card-pro {
+            background: #fffdf5;
+            border-color: #ffeeba;
+        }
+    }
+}

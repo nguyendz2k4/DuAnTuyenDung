@@ -1,0 +1,115 @@
+.right-sidebar {
+    position: fixed;
+    right: 20px;
+    top: 30%;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.icon-item {
+    background: #fff;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    
+    svg {
+        color: #00b14f;
+        font-size: 20px;
+    }
+    
+    &:hover {
+        box-shadow: 0 3px 10px rgba(0, 177, 79, 0.25);
+        transform: translateY(-2px);
+    }
+    
+    // Badge cho số thông báo
+    &::after {
+        content: attr(data-badge);
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #00b14f;
+        color: white;
+        font-size: 10px;
+        font-weight: 600;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 2px solid white;
+    }
+    
+    &:not([data-badge])::after {
+        display: none;
+    }
+}
+
+.bottom-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.text-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    .icon-wrapper {
+        background: #fff;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        
+        svg {
+            color: #00b14f;
+            font-size: 20px;
+        }
+    }
+    
+    .label {
+        font-size: 11px;
+        color: #00b14f;
+        font-weight: 500;
+        white-space: nowrap;
+        text-align: center;
+    }
+    
+    &:hover {
+        .icon-wrapper {
+            box-shadow: 0 3px 10px rgba(0, 177, 79, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .label {
+            color: #008a3d;
+        }
+    }
+}

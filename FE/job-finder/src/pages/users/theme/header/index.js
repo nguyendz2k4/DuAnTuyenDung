@@ -1,0 +1,175 @@
+import { memo, useState, useRef, useEffect } from "react";
+// SỬA LỖI 1: Gộp import, chỉ khai báo 1 lần duy nhất
+import { Link, useNavigate } from "react-router-dom";
+import { FiBell, FiMessageCircle, FiUser, FiMapPin, FiLogOut } from "react-icons/fi";
+import { BsChevronDown, BsChevronUp } from "react-icons/bs";
+import { IoIosSearch, IoIosList } from "react-icons/io";
+import JoblistDropdown from "./JoblistDropdown";
+// Đảm bảo đường dẫn ảnh đúng với dự án của bạn
+import logo from "../../../../assets/imgs/logo/topcv-logo-6.png";
+import "./style.scss";
+
+const Header = () => {
+    const [openMenu, setOpenMenu] = useState(false);
+    const [showLocation, setShowLocation] = useState(false);
+    const [showCategory, setShowCategory] = useState(false);
+
+    const [currentUser, setCurrentUser] = useState(null);
+    const [showUserMenu, setShowUserMenu] = useState(false);
+
+    const dropdownRef = useRef(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const userStored = localStorage.getItem("user");
+        const token = localStorage.getItem("token");
+
+        if (userStored && token) {
+            setCurrentUser(JSON.parse(userStored));
+        }
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setCurrentUser(null);
+        setShowUserMenu(false);
+        navigate("/login");
+        window.location.reload();
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowCategory(false);
+                setShowLocation(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    return (
+        <header className="header-container">
+            <div className="header-top">
+                <div className="header-left">
+                    <Link to="/">
+                        <img src={logo} alt="TopCV Logo" className="logo" />
+                    </Link>
+                </div>
+                {/* NAVIGATION MENU */}
+                <nav className="header-nav">
+                    <div className="nav-item">
+                        <div className="nav-title">
+                            Việc làm <BsChevronDown className="icon-down" /> <BsChevronUp className="icon-up" />
+                        </div>
+                        <div className="dropdown-menu">
+                            <a href="#" className="dropdown-item">Việc làm mới nhất</a>
+                            <Link to="/favorite-jobs" className="dropdown-item">Việc làm đã lưu</Link>
+                            {/* SỬA LỖI 2: Xóa onClick={handleClick} vì hàm này chưa được khai báo */}
+                            <a
+                                href="/applied-jobs"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="dropdown-item"
+                            >
+                                <i className="bi bi-send-check"></i>
+                                Việc làm đã ứng tuyển
+                            </a>
+                        </div>
+                    </div>
+
+                    <div className="nav-item">
+                        <div className="nav-title">Hồ sơ & CV</div>
+                    </div>
+                    <div className="nav-item">
+                        <div className="nav-title">Công cụ</div>
+                    </div>
+                </nav>
+
+                {/* KHU VỰC TÀI KHOẢN VÀ ACTION */}
+                <div className="header-icons">
+                    <button className="icon-btn"><FiBell size={20} /></button>
+                    <button className="icon-btn"><FiMessageCircle size={20} /></button>
+
+                    {/* --- LOGIC HIỂN THỊ USER --- */}
+                    {currentUser ? (
+                        <>
+                            {/* 1. Hiển thị Avatar & Menu User */}
+                            <div className="user-account" onClick={() => setShowUserMenu(!showUserMenu)}>
+                                <div className="avatar-wrapper">
+                                    {currentUser.avatar ? (
+                                        <img src={currentUser.avatar} alt="Avt" className="user-avatar-tiny" />
+                                    ) : (
+                                        <div className="avatar-circle">
+                                            {currentUser.full_name ? currentUser.full_name.charAt(0).toUpperCase() : "U"}
+                                        </div>
+                                    )}
+                                    <div className="dropdown-badge">
+                                        <BsChevronDown size={8} />
+                                    </div>
+                                </div>
+
+                                {showUserMenu && (
+                                    <div className="user-dropdown">
+                                        <div className="user-dropdown-item">
+                                            <strong>{currentUser.full_name}</strong>
+                                            <div style={{ fontSize: '12px', color: '#666' }}>{currentUser.email}</div>
+                                        </div>
+                                        <div className="user-dropdown-item logout" onClick={handleLogout}>
+                                            <FiLogOut style={{ marginRight: 5 }} /> Đăng xuất
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 2. Vạch ngăn cách */}
+                            <div className="divider-vertical"></div>
+
+                            {/* 3. Phần Nhà Tuyển Dụng */}
+                            <div className="employer-section">
+                                <span className="emp-text">Bạn là nhà tuyển dụng?</span>
+                                <Link to="/employer/post-job" className="emp-link">
+                                    Đăng tuyển ngay &raquo;
+                                </Link>
+                            </div>
+                        </>
+                    ) : (
+                        /* TRƯỜNG HỢP 2: CHƯA ĐĂNG NHẬP */
+                        <Link to="/login" className="login-link">
+                            <FiUser size={20} />
+                            <span>Đăng nhập</span>
+                        </Link>
+                    )}
+
+                    {/* Nút Mobile Menu */}
+                    <button className="mobile-menu-btn" onClick={() => setOpenMenu(!openMenu)}>
+                        <span></span><span></span><span></span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Search bar */}
+            <div className="header-search" ref={dropdownRef}>
+                <div className="category-dropdown-wrapper">
+                    <button className="category-btn" onClick={() => setShowCategory(!showCategory)}>
+                        <IoIosList size={20} /> <span>Danh mục Nghề</span>
+                    </button>
+                    {showCategory && (
+                        <div className="category-dropdown-panel">
+                            <JoblistDropdown onClose={() => setShowCategory(false)} />
+                        </div>
+                    )}
+                </div>
+                <input type="text" placeholder="Vị trí tuyển dụng, tên công ty" className="search-input" />
+
+                <button className="search-btn">
+                    <IoIosSearch size={18} />
+                    <span>Tìm kiếm</span>
+                </button>
+            </div>
+        </header>
+    );
+};
+
+export default memo(Header);

@@ -1,0 +1,42 @@
+﻿using DoAnTotNghiep.DTO;
+using DoAnTotNghiep.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace DoAnTotNghiep.Controllers.users
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class CompanyController : Controller
+    {
+        private readonly AppDbContext _context;
+
+        public CompanyController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<CompanyListDto>>> GetEmployers()
+        {
+            var result = await _context.JobPosts
+                .Where(j => j.EmployerId != null) 
+                .GroupBy(j => new
+                {
+                    j.EmployerId,
+                    j.Employer.CompanyName,
+                    j.Employer.Logo
+                })
+                .Select(g => new CompanyListDto
+                {
+                    EmployerId = g.Key.EmployerId, 
+                    CompanyName = g.Key.CompanyName,
+                    CompanyLogo = g.Key.Logo,
+                    JobCount = g.Count()
+                })
+                .ToListAsync();
+
+            return Ok(result);
+        }
+    }
+}

@@ -1,0 +1,161 @@
+.location-dropdown {
+    position: fixed;
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%); // canh giữa nếu muốn, hoặc bỏ nếu muốn canh phải
+    width: 600px;
+    height: 400px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    overflow: hidden;
+    z-index: 9999;
+
+    .province-column {
+        width: 45%;
+        border-right: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+
+        .province-search {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+
+            input {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                font-size: 14px;
+
+                &:focus {
+                    outline: none;
+                    border-color: #00b14f;
+                }
+            }
+        }
+
+        .province-list {
+            flex: 1;
+            overflow-y: auto;
+
+            .province-item {
+                padding: 10px 15px;
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                &:hover {
+                    background: #f6f6f6;
+                }
+
+                &.active {
+                    background: #e6f8ed;
+                    color: #00b14f;
+                    font-weight: 600;
+                }
+
+                .arrow {
+                    font-size: 18px;
+                }
+            }
+        }
+    }
+
+    .district-column {
+        width: 55%;
+        padding: 10px;
+
+        .district-list {
+            max-height: 300px; // 👈 Giới hạn chiều cao để có thể cuộn
+            overflow-y: auto; // 👈 Cho phép cuộn dọc
+            padding-right: 8px;
+
+            // Scrollbar style nhẹ nhàng
+            &::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background-color: #ccc;
+                border-radius: 3px;
+            }
+
+            &::-webkit-scrollbar-thumb:hover {
+                background-color: #999;
+            }
+
+            h4 {
+                margin-bottom: 10px;
+                font-size: 15px;
+                font-weight: 600;
+            }
+
+            .district-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 6px;
+                font-size: 14px;
+
+                input {
+                    margin-right: 8px;
+                }
+            }
+        }
+
+
+        .empty-placeholder {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+            text-align: center;
+
+            img {
+                width: 100px;
+                margin-bottom: 10px;
+                opacity: 0.8;
+            }
+        }
+    }
+
+    .dropdown-footer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fafafa;
+        padding: 10px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+
+        .clear-btn {
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .apply-btn {
+            background: #00b14f;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+
+            &:hover {
+                background: #009643;
+            }
+        }
+    }
+}

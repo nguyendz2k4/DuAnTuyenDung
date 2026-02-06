@@ -1,0 +1,335 @@
+// AppliedJobsPage.scss
+
+$bg: #f6f7fb;
+$white: #fff;
+$border: #eee;
+$text: #111;
+$text2: #555;
+$text3: #666;
+
+$radius-lg: 16px;
+$radius-md: 14px;
+$radius-sm: 10px;
+
+$accent: #f59e0b; // vàng kiểu TopCV
+$accent-soft: #fff7ed;
+
+.applied-wrap {
+    background: $bg;
+    padding: 24px 0;
+
+    .applied-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 16px;
+
+        @media (max-width: 992px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .applied-left,
+    .applied-right {
+        background: $white;
+        border-radius: $radius-lg;
+        padding: 16px;
+        border: 1px solid $border;
+    }
+
+    // LEFT
+    .applied-left {
+        h3 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: $text;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0 16px;
+
+            input {
+                flex: 1;
+                padding: 10px 12px;
+                border-radius: $radius-sm;
+                border: 1px solid #ddd;
+                outline: none;
+
+                &:focus {
+                    border-color: rgba($accent, 0.6);
+                    box-shadow: 0 0 0 3px rgba($accent, 0.15);
+                }
+            }
+
+            button {
+                width: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: $radius-sm;
+                border: 0;
+                background: $accent;
+                color: $white;
+                cursor: pointer;
+
+                i {
+                    font-size: 18px;
+                    line-height: 1;
+                }
+
+                &:hover {
+                    filter: brightness(0.98);
+                }
+            }
+        }
+
+        .filter-block {
+            .filter-title {
+                font-weight: 600;
+                margin-bottom: 10px;
+                color: $text;
+            }
+
+            .filter-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+
+                .chip {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 8px 10px;
+                    border-radius: 999px;
+                    border: 1px solid $border;
+                    background: $white;
+                    cursor: pointer;
+                    color: $text2;
+                    transition: 0.15s ease;
+
+                    i {
+                        font-size: 15px;
+                    }
+
+                    &:hover {
+                        border-color: rgba($accent, 0.55);
+                        background: rgba($accent, 0.06);
+                    }
+
+                    &.active {
+                        border-color: $accent;
+                        background: $accent-soft;
+                        color: $text;
+                        font-weight: 600;
+                    }
+                }
+            }
+        }
+    }
+
+    // RIGHT
+    .applied-right {
+        .list-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            color: $text2;
+
+            b {
+                color: $text;
+            }
+        }
+
+        .empty {
+            padding: 24px;
+            text-align: center;
+            color: $text3;
+            border: 1px dashed #ddd;
+            border-radius: $radius-md;
+            background: rgba(#fff, 0.6);
+        }
+
+        .job-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .job-card {
+            display: grid;
+            grid-template-columns: 56px 1fr 190px;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid $border;
+            border-radius: $radius-md;
+            background: $white;
+
+            @media (max-width: 992px) {
+                grid-template-columns: 56px 1fr;
+            }
+
+            .job-logo {
+                width: 56px;
+                height: 56px;
+                border-radius: 12px;
+                object-fit: cover;
+                border: 1px solid $border;
+                background: #fafafa;
+            }
+
+            .job-info {
+                .job-title {
+                    font-weight: 700;
+                    font-size: 16px;
+                    margin-bottom: 4px;
+                    color: $text;
+                }
+
+                .job-company {
+                    color: $text2;
+                    margin-bottom: 6px;
+                }
+
+                .job-meta,
+                .job-meta2 {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 12px;
+                    color: $text3;
+                    font-size: 13px;
+
+                    span {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+
+                        i {
+                            font-size: 14px;
+                        }
+                    }
+                }
+
+                .job-meta2 {
+                    margin-top: 6px;
+                }
+
+                .badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 4px 10px;
+                    border-radius: 999px;
+                    font-size: 13px;
+                    border: 1px solid $border;
+                    background: #f3f4f6;
+                    color: $text;
+
+                    i {
+                        font-size: 14px;
+                    }
+                }
+
+                // màu theo status (tuỳ bạn mapping apply_status)
+                .badge-pending {
+                    background: $accent-soft;
+                    color: #92400e;
+                    border-color: rgba($accent, 0.35);
+                }
+
+                .badge-viewed {
+                    background: #eff6ff;
+                    color: #1d4ed8;
+                    border-color: rgba(#1d4ed8, 0.25);
+                }
+
+                .badge-accepted {
+                    background: #ecfdf5;
+                    color: #047857;
+                    border-color: rgba(#047857, 0.25);
+                }
+
+                .badge-rejected {
+                    background: #fef2f2;
+                    color: #b91c1c;
+                    border-color: rgba(#b91c1c, 0.25);
+                }
+            }
+
+            .job-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                justify-content: center;
+
+                @media (max-width: 992px) {
+                    grid-column: 1 / -1;
+                    flex-direction: row;
+                    justify-content: flex-start;
+                }
+
+                button {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    padding: 10px 12px;
+                    border-radius: $radius-sm;
+                    cursor: pointer;
+                    transition: 0.15s ease;
+                    font-weight: 600;
+
+                    i {
+                        font-size: 15px;
+                    }
+                }
+
+                .btn-outline {
+                    border: 1px solid #ddd;
+                    background: $white;
+                    color: $text;
+
+                    &:hover {
+                        background: rgba(#000, 0.02);
+                    }
+                }
+
+                .btn-primary {
+                    border: 0;
+                    background: #111827;
+                    color: $white;
+
+                    &:hover {
+                        filter: brightness(1.02);
+                    }
+                }
+            }
+        }
+
+        .paging {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 16px;
+
+            button {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 12px;
+                border-radius: $radius-sm;
+                border: 1px solid #ddd;
+                background: $white;
+                cursor: pointer;
+
+                &:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,332 @@
+$primary-green: #00b14f;
+$bg-gray: #f4f5f5;
+$text-dark: #333;
+$text-gray: #777;
+$border-color: #ddd;
+
+.apply-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.apply-modal-container {
+    width: 700px;
+    max-width: 95vw;
+    height: 90vh;
+    /* Chiều cao cố định để scroll nội dung bên trong */
+    background: #fff;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+
+    // --- HEADER ---
+    .modal-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        background: #fff;
+
+        .job-title {
+            font-size: 18px;
+            color: $text-dark;
+            margin: 0;
+            line-height: 1.4;
+
+            .highlight {
+                color: $primary-green;
+                font-weight: 700;
+            }
+        }
+
+        .close-btn {
+            background: #f2f2f2;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #666;
+            margin-left: 10px;
+            flex-shrink: 0;
+
+            &:hover {
+                background: #e0e0e0;
+            }
+        }
+    }
+
+    // --- BODY ---
+    .modal-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+    }
+
+    // Styles chung cho form
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        color: $text-dark;
+
+        .required {
+            color: red;
+            margin-left: 3px;
+        }
+    }
+
+    input,
+    textarea,
+    select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid $border-color;
+        border-radius: 4px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+        background-color: #fff; // Đảm bảo nền trắng
+
+        &:focus {
+            border-color: $primary-green;
+        }
+
+        &::placeholder {
+            color: #aaa;
+        }
+    }
+
+    select {
+        color: $text-dark;
+        cursor: pointer;
+
+        option[value=""][disabled] {
+            color: #aaa;
+        }
+    }
+
+    .cv-upload-group {
+        border: 1px dashed $primary-green;
+        background: #fafffc;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+
+        .upload-header {
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: $text-dark;
+        }
+
+        .upload-area {
+            text-align: center;
+            margin-bottom: 20px;
+
+            .upload-instruction {
+                color: $text-gray;
+                font-size: 13px;
+                margin-bottom: 10px;
+
+                .cloud-icon {
+                    font-size: 24px;
+                    margin-bottom: 5px;
+                    color: #aaa;
+                }
+
+                p {
+                    margin: 4px 0 0;
+                    color: #888;
+                }
+            }
+
+            .btn-select-cv {
+                background: #e8e8e8;
+                padding: 8px 20px;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                border: 1px solid #ccc;
+
+                &:hover {
+                    background: #dcdcdc;
+                }
+            }
+        }
+
+        .info-form {
+            .form-note {
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+                margin-bottom: 15px;
+
+                .text-green {
+                    color: $primary-green;
+                }
+
+                .text-red {
+                    color: red;
+                    font-style: italic;
+                }
+            }
+
+            .row {
+                display: flex;
+                gap: 15px;
+
+                .col {
+                    flex: 1;
+                }
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+        }
+    }
+
+    .cover-letter-section {
+        margin-bottom: 20px;
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .description {
+            font-size: 14px;
+            color: $text-gray;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .textarea-wrapper {
+            position: relative;
+
+            textarea {
+                resize: vertical;
+                min-height: 80px;
+            }
+
+            .edit-icon {
+                position: absolute;
+                bottom: 10px;
+                right: 10px;
+                background: $primary-green;
+                color: white;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+            }
+        }
+    }
+
+    .warning-box {
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        padding: 15px;
+        background: #fff;
+
+        .warning-title {
+            color: #d32f2f;
+            font-size: 15px;
+            margin-top: 0;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        ol {
+            padding-left: 20px;
+            margin: 0;
+
+            li {
+                font-size: 13px;
+                color: $text-gray;
+                margin-bottom: 6px;
+                line-height: 1.5;
+
+                a {
+                    color: $primary-green;
+                    text-decoration: none;
+                    font-weight: 500;
+                }
+            }
+        }
+    }
+
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
+        background: #fff;
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+
+        .btn-cancel {
+            background: #f2f2f2;
+            color: $text-dark;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+
+            &:hover {
+                background: #e0e0e0;
+            }
+        }
+
+        .btn-submit {
+            flex: 1; // Nút submit dài ra
+            background: $primary-green;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+
+            &:hover {
+                background: darken($primary-green, 5%);
+            }
+        }
+    }
+}
