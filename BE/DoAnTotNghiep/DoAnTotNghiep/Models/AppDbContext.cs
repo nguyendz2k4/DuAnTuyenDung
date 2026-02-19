@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using DoAnTotNghiep.Models; 
 
 namespace DoAnTotNghiep.Models;
 
-public partial class AppDbContext : DbContext
+public partial class AppDbContext : IdentityDbContext<ApplicationUser>
 {
     public AppDbContext()
     {
@@ -15,60 +18,64 @@ public partial class AppDbContext : DbContext
     {
     }
 
+    public virtual DbSet<User> DomainUsers { get; set; }
+
     public virtual DbSet<Application> Applications { get; set; }
-
     public virtual DbSet<ArticleCategory> ArticleCategories { get; set; }
-
     public virtual DbSet<ArticleCategoryMap> ArticleCategoryMaps { get; set; }
-
     public virtual DbSet<ArticleTag> ArticleTags { get; set; }
-
     public virtual DbSet<ArticleTagMap> ArticleTagMaps { get; set; }
-
     public virtual DbSet<CareerArticle> CareerArticles { get; set; }
-
     public virtual DbSet<CvUpload> CvUploads { get; set; }
-
     public virtual DbSet<Employer> Employers { get; set; }
-
     public virtual DbSet<EmployerPackage> EmployerPackages { get; set; }
-
     public virtual DbSet<EmployerReview> EmployerReviews { get; set; }
-
     public virtual DbSet<Industry> Industries { get; set; }
-
     public virtual DbSet<JobCategory> JobCategories { get; set; }
-
     public virtual DbSet<JobPost> JobPosts { get; set; }
-
     public virtual DbSet<JobPostCategory> JobPostCategories { get; set; }
-
     public virtual DbSet<JobPostFeature> JobPostFeatures { get; set; }
-
     public virtual DbSet<JobSeeker> JobSeekers { get; set; }
-
     public virtual DbSet<Message> Messages { get; set; }
-
     public virtual DbSet<Notification> Notifications { get; set; }
-
     public virtual DbSet<Resume> Resumes { get; set; }
-
     public virtual DbSet<SeekerFeedback> SeekerFeedbacks { get; set; }
-
     public virtual DbSet<ServicePackage> ServicePackages { get; set; }
-
     public virtual DbSet<Transaction> Transactions { get; set; }
-
-    public virtual DbSet<User> Users { get; set; }
-
     public virtual DbSet<UserProfile> UserProfiles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("users", "tuyendung");
+            entity.HasKey(e => e.UserId).HasName("PK_users_user_id"); 
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.IdentityUserId)
+                  .HasMaxLength(450) 
+                  .HasColumnName("IdentityUserId");
+
+            entity.Property(e => e.FullName).HasMaxLength(100).HasColumnName("full_name");
+            entity.Property(e => e.Avatar).HasMaxLength(500).HasColumnName("avatar");
+            entity.Property(e => e.AccountType).HasDefaultValue("normal").HasMaxLength(50).HasColumnName("account_type");
+
+            entity.Property(e => e.GoogleId).HasMaxLength(255).HasColumnName("google_id");
+            entity.Property(e => e.FacebookId).HasMaxLength(255).HasColumnName("facebook_id");
+
+            entity.Property(e => e.IsVerified).HasDefaultValue((short)0).HasColumnName("is_verified");
+            entity.Property(e => e.Status).HasColumnName("status");
+
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(e => e.LastLogin).HasColumnType("datetime").HasColumnName("last_login");
+        });
+
+        // --- CẤU HÌNH CÁC BẢNG KHÁC (GIỮ NGUYÊN) ---
+
         modelBuilder.Entity<Application>(entity =>
         {
             entity.HasKey(e => e.ApplicationId).HasName("PK_applications_application_id");
-
             entity.Property(e => e.AppliedAt).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.CoverLetter).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.CvId).HasDefaultValueSql("(NULL)");
@@ -85,7 +92,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<ArticleCategory>(entity =>
         {
             entity.HasKey(e => e.CategoryId).HasName("PK_article_categories_category_id");
-
             entity.Property(e => e.Description).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.Name).HasDefaultValueSql("(NULL)");
         });
@@ -98,7 +104,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<ArticleTag>(entity =>
         {
             entity.HasKey(e => e.TagId).HasName("PK_article_tags_tag_id");
-
             entity.Property(e => e.Name).HasDefaultValueSql("(NULL)");
         });
 
@@ -110,7 +115,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<CareerArticle>(entity =>
         {
             entity.HasKey(e => e.ArticleId).HasName("PK_career_articles_article_id");
-
             entity.Property(e => e.AuthorId).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.Content).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(NULL)");
@@ -122,7 +126,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<CvUpload>(entity =>
         {
             entity.HasKey(e => e.CvId).HasName("PK_cv_uploads_cv_id");
-
             entity.Property(e => e.FilePath).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.FileType).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.SeekerId).HasDefaultValueSql("(NULL)");
@@ -132,7 +135,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Employer>(entity =>
         {
             entity.HasKey(e => e.EmployerId).HasName("PK_employers_employer_id");
-
             entity.Property(e => e.Address).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.CompanyName).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.CompanySize).HasDefaultValueSql("(NULL)");
@@ -146,7 +148,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<EmployerPackage>(entity =>
         {
             entity.HasKey(e => e.EmployerPackageId).HasName("PK_employer_packages_employer_package_id");
-
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Status).HasDefaultValue("active");
         });
@@ -154,7 +155,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<EmployerReview>(entity =>
         {
             entity.HasKey(e => e.ReviewId).HasName("PK_employer_reviews_review_id");
-
             entity.Property(e => e.Comment).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.EmployerId).HasDefaultValueSql("(NULL)");
@@ -165,14 +165,12 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Industry>(entity =>
         {
             entity.HasKey(e => e.IndustryId).HasName("PK_industry_industry_id");
-
             entity.Property(e => e.NameIndustry).HasDefaultValueSql("(NULL)");
         });
 
         modelBuilder.Entity<JobCategory>(entity =>
         {
             entity.HasKey(e => e.CategoryId).HasName("PK_job_categories_category_id");
-
             entity.Property(e => e.Description).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.Name).HasDefaultValueSql("(NULL)");
         });
@@ -180,7 +178,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<JobPost>(entity =>
         {
             entity.HasKey(e => e.JobId).HasName("PK_job_posts_job_id");
-
             entity.Property(e => e.CategoryId).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.Description).HasDefaultValueSql("(NULL)");
@@ -209,14 +206,12 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<JobPostFeature>(entity =>
         {
             entity.HasKey(e => e.JobPostFeatureId).HasName("PK_job_post_features_job_post_feature_id");
-
             entity.Property(e => e.Priority).HasDefaultValue(0);
         });
 
         modelBuilder.Entity<JobSeeker>(entity =>
         {
             entity.HasKey(e => e.SeekerId).HasName("PK_job_seekers_seeker_id");
-
             entity.Property(e => e.Address).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.DateOfBirth).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.EducationLevel).HasDefaultValueSql("(NULL)");
@@ -230,7 +225,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Message>(entity =>
         {
             entity.HasKey(e => e.MessageId).HasName("PK_messages_message_id");
-
             entity.Property(e => e.Content).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.IsRead).HasDefaultValueSql("(NULL)");
@@ -241,7 +235,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Notification>(entity =>
         {
             entity.HasKey(e => e.NotificationId).HasName("PK_notifications_notification_id");
-
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsRead).HasDefaultValue((short)0);
             entity.Property(e => e.RelatedId).HasDefaultValueSql("(NULL)");
@@ -250,7 +243,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Resume>(entity =>
         {
             entity.HasKey(e => e.ResumeId).HasName("PK_resumes_resume_id");
-
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.Education).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.Experience).HasDefaultValueSql("(NULL)");
@@ -264,7 +256,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<SeekerFeedback>(entity =>
         {
             entity.HasKey(e => e.FeedbackId).HasName("PK_seeker_feedback_feedback_id");
-
             entity.Property(e => e.Comment).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.EmployerId).HasDefaultValueSql("(NULL)");
@@ -275,7 +266,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<ServicePackage>(entity =>
         {
             entity.HasKey(e => e.PackageId).HasName("PK_service_packages_package_id");
-
             entity.Property(e => e.Description).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.DurationDays).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.Features).HasDefaultValueSql("(NULL)");
@@ -286,7 +276,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Transaction>(entity =>
         {
             entity.HasKey(e => e.TransactionId).HasName("PK_transactions_transaction_id");
-
             entity.Property(e => e.Amount).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.PackageId).HasDefaultValueSql("(NULL)");
@@ -294,31 +283,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.UserId).HasDefaultValueSql("(NULL)");
         });
 
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.HasKey(e => e.UserId).HasName("PK_users_user_id");
-
-            entity.Property(e => e.AccountType).HasDefaultValue("normal");
-            entity.Property(e => e.Avatar).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.Email).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.FacebookId).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.FullName).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.GoogleId).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.IsVerified).HasDefaultValue((short)0);
-            entity.Property(e => e.LastLogin).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.PasswordHash).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.Phone).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.Role).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.Status).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.Username).HasDefaultValueSql("(NULL)");
-        });
-
         modelBuilder.Entity<UserProfile>(entity =>
         {
             entity.HasKey(e => e.ProfileId).HasName("PK_user_profiles_profile_id");
-
             entity.Property(e => e.Address).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.Bio).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");

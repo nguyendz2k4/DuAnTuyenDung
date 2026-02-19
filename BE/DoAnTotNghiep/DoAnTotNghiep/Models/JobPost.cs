@@ -77,6 +77,9 @@ public partial class JobPost
     [Column("view_count")]
     public int? ViewCount { get; set; }
 
+    [Column("deadline", TypeName = "datetime")] 
+    public DateTime? Deadline { get; set; }
+
     [Column("is_approved")]
     public short? IsApproved { get; set; }
 

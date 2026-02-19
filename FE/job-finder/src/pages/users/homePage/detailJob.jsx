@@ -7,186 +7,175 @@ import "./detailJob.scss";
 const DetailJob = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { state } = useLocation();
+    const { state } = useLocation(); // Dùng nếu muốn lấy state từ trang trước
+    
+    // State UI
     const [selectedImage, setSelectedImage] = useState(null);
     const [openApply, setOpenApply] = useState(false);
 
+    // State Data
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const API_BASE_URL = "https://localhost:7099"; 
 
-    const API_BASE_URL = "https://localhost:7099/api/DetailJobs"; 
+    const resolveUrl = (path) => {
+        if (!path) return "https://via.placeholder.com/150?text=No+Image";
+        const cleanPath = String(path).trim();
+        if (cleanPath.startsWith("http")) return cleanPath;
+        return `${API_BASE_URL}/${cleanPath.replace(/^\//, '')}`;
+    };
+
+    const parseText = (text) => {
+        if (!text) return [];
+        const safeText = String(text);
+        // Tách theo dòng mới hoặc dấu chấm
+        let items = safeText.split('\n').map(t => t.trim()).filter(t => t.length > 0);
+        if (items.length <= 1) items = safeText.split('.').map(t => t.trim()).filter(t => t.length > 0);
+        return items.length > 0 ? items : [safeText];
+    };
+
+    const formatDate = (dateInput) => {
+        if (!dateInput) return "N/A";
+        return new Date(dateInput).toLocaleDateString("vi-VN", {
+            day: "2-digit", month: "2-digit", year: "numeric"
+        });
+    };
 
     useEffect(() => {
         const fetchJobDetail = async () => {
+            if (!id) return;
+
             try {
                 setLoading(true);
                 setError(null);
-                const response = await axios.get(`${API_BASE_URL}/${id}`);
+                
+                // Gọi API
+                const response = await axios.get(`${API_BASE_URL}/api/DetailJobs/${id}`);
+                const apiJob = response.data;
 
-                console.log("✅ Job Detail Response:", response.data);
+                if (apiJob) {
+                    console.log("✅ Data Loaded:", apiJob);
 
-                if (response.data) {
-                    const apiJob = response.data;
-
-                    // Xử lý hạn nộp (Vì DTO chưa có Deadline, ta giả định là 30 ngày sau khi tạo)
-                    const createdDate = new Date(apiJob.createdAt);
+                    // --- XỬ LÝ DỮ LIỆU (DATA TRANSFORMATION) ---
+                    // Làm sạch dữ liệu ở đây để tránh tính toán lại trong JSX gây nháy
+                    
+                    // 1. Xử lý ngày tháng
+                    const createdDate = apiJob.createdAt ? new Date(apiJob.createdAt) : new Date();
                     const deadlineDate = new Date(createdDate);
                     deadlineDate.setDate(createdDate.getDate() + 30);
 
-                    // Xử lý Images (DTO trả về string chuỗi ảnh ngăn cách bởi dấu phẩy, cần split ra mảng)
-                    let imageList = [];
+                    // 2. Xử lý danh sách ảnh
+                    let rawImages = [];
                     if (apiJob.images) {
-                        // Nếu backend trả về string "img1.jpg;img2.jpg" hoặc json
-                        imageList = apiJob.images.includes(',') 
+                        rawImages = apiJob.images.includes(',') 
                             ? apiJob.images.split(',') 
                             : [apiJob.images];
                     }
+                    // Map sang URL đầy đủ
+                    const fullImages = rawImages.map(img => resolveUrl(img));
 
-                    const transformedJob = {
-                        id: apiJob.jobId,
-                        title: apiJob.title,
-                        salary: apiJob.salaryRange, 
-                        location: apiJob.location,
+                    // 3. Xử lý Logo
+                    const fullLogo = resolveUrl(apiJob.logo || apiJob.images);
+
+                    // 4. Tạo object hoàn chỉnh
+                    const finalJob = {
+                        ...apiJob, // Giữ lại các trường gốc nếu cần
                         
-                        // Thông tin công ty
-                        company: apiJob.companyName,
-                        logo: getImageUrl(apiJob.logo || apiJob.images), 
+                        // Override các trường hiển thị
+                        title: apiJob.title,
+                        salary: apiJob.salaryRange || "Thỏa thuận",
+                        location: apiJob.location || "Toàn quốc",
+                        
+                        // Company Info
+                        company: apiJob.companyName || "Công ty ẩn danh",
+                        logo: fullLogo,
                         companySize: apiJob.companySize || "Chưa cập nhật",
-                        industry: apiJob.nameIndustry || "Chưa xác định", 
+                        industry: apiJob.nameIndustry || "Đa ngành",
                         address: apiJob.address || apiJob.location,
-                        companyWebsite: apiJob.companyWebsite || "#", 
-                        companyDescription: "Đang cập nhật...", 
-
-                        // Thời gian
+                        companyWebsite: apiJob.companyWebsite || "#",
+                        
+                        // Time
                         deadline: formatDate(deadlineDate),
-                        createdAt: formatDate(apiJob.createdAt),
+                        createdAt: formatDate(createdDate),
 
-                        // Chi tiết
-                        experience: apiJob.level || "Không yêu cầu kinh nghiệm",
+                        // Stats
+                        experience: apiJob.level || "Không yêu cầu",
                         level: apiJob.level || "Nhân viên",
                         education: apiJob.education || "Không yêu cầu",
-                        quantity: apiJob.quantity ? `${apiJob.quantity} người` : "1 người",
+                        quantity: apiJob.quantity ? `${apiJob.quantity} người` : "Đang tuyển",
                         viewCount: apiJob.viewCount || 0,
 
-                        // Xử lý văn bản xuống dòng
-                        description: parseTextToArray(apiJob.description),
-                        jobRequirements: parseTextToArray(apiJob.requirements),
-
-                        // Tags (Kết hợp Category, Type, Level)
+                        // Lists (Parse ngay tại đây)
+                        descriptionList: parseText(apiJob.description),
+                        requirementsList: parseText(apiJob.requirements),
+                        // Giả định benefits vì backend chưa có
+                        benefitsList: [
+                            "Môi trường làm việc chuyên nghiệp",
+                            "Được đào tạo nâng cao nghiệp vụ",
+                            "Chế độ bảo hiểm đầy đủ theo quy định"
+                        ],
+                        // Expertise (tạm lấy từ requirements)
+                        expertiseList: parseText(apiJob.requirements).slice(0, 4),
+                        
+                        // Tags
                         tags: [
                             apiJob.categoryName,
-                            apiJob.level,
-                            apiJob.jobType
+                            apiJob.jobType,
+                            apiJob.level
                         ].filter(Boolean),
 
-                        // Tạm thời lấy requirements làm expertise vì DTO chưa có field expertise riêng
-                        expertise: parseTextToArray(apiJob.requirements).slice(0, 4),
-
-                        // Fix cứng quyền lợi (hoặc bạn cần thêm field Benefits vào DTO)
-                        benefits: [
-                            "Lương thưởng cạnh tranh",
-                            "Môi trường làm việc chuyên nghiệp",
-                            "Cơ hội thăng tiến rõ ràng"
-                        ],
-
-                        images: imageList.map(img => getImageUrl(img))
+                        // Gallery Images
+                        images: fullImages
                     };
 
-                    setJob(transformedJob);
+                    setJob(finalJob);
                 } else {
-                    setError("Không tìm thấy công việc");
+                    setError("Không tìm thấy dữ liệu công việc.");
                 }
             } catch (err) {
-                console.error("❌ Error fetching job:", err);
-                if (err.response && err.response.status === 404) {
-                    setError("Tin tuyển dụng không tồn tại hoặc đã bị xóa.");
-                } else {
-                    setError("Lỗi kết nối đến server.");
-                }
+                console.error("❌ Error:", err);
+                setError("Có lỗi xảy ra khi tải dữ liệu.");
             } finally {
                 setLoading(false);
             }
         };
 
-        if (id) {
-            fetchJobDetail();
-        }
-    }, [id]);
+        fetchJobDetail();
+    }, [id]); // Chỉ chạy lại khi ID thay đổi
 
-    // const getImageUrl = (path) => {
-    //     if (!path) return "";
-    //     let p = String(path).trim();
-    //     if (p.startsWith("http")) return p;
-
-    //     const API_ROOT = "https://localhost:7099"; 
-
-    //     if (!p.startsWith("/")) p = "/" + p;
-    //     return API_ROOT + p;
-    // };
-    // Sửa lại hàm này trong file detailJob.jsx
-const getImageUrl = (path) => {
-    return "https://via.placeholder.com/150?text=No+Image"; 
-
-};
-
-    const formatDate = (dateInput) => {
-        if (!dateInput) return "N/A";
-        const date = new Date(dateInput);
-        return date.toLocaleDateString("vi-VN", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric"
-        });
-    };
-
-    const parseTextToArray = (text) => {
-        if (!text) return [];
-        const safeText = String(text); 
-        let items = safeText.split('\n').filter(line => line.trim());
-        if (items.length <= 1) items = safeText.split('.').filter(line => line.trim());
-        if (items.length <= 1) return [safeText];
-        return items.map(item => item.trim()).filter(item => item.length > 0);
-    };
-
-    const openImageModal = (imageSrc) => {
-        setSelectedImage(imageSrc);
-    };
-
-    const closeImageModal = () => {
-        setSelectedImage(null);
-    };
-
+    // Các hàm xử lý sự kiện
     const handleApplyClick = () => {
         const token = localStorage.getItem("token"); 
         if (!token) {
-            navigate("/login", {
-                state: { redirectTo: `/job/${id}` }
-            });
+            navigate("/login", { state: { redirectTo: `/job/${id}` } });
             return;
         }
         setOpenApply(true);
     };
 
+    // Render Loading
     if (loading) {
         return (
             <div className="detail-job__loading">
                 <div className="spinner"></div>
-                <p>Đang tải thông tin công việc...</p>
+                <p>Đang tải thông tin...</p>
             </div>
         );
     }
 
+    // Render Error
     if (error || !job) {
         return (
             <div className="detail-job__notfound">
-                <p>{error || "Không tìm thấy thông tin công việc."}</p>
+                <p>{error || "Không tìm thấy công việc."}</p>
                 <button onClick={() => navigate(-1)}>← Quay lại</button>
             </div>
         );
     }
 
+    // Render Main Content (Giữ nguyên cấu trúc HTML/Class cũ)
     return (
         <div className="detail-job">
             {/* ===== HEADER ===== */}
@@ -206,7 +195,6 @@ const getImageUrl = (path) => {
                             <span className="icon">🎓</span>
                             <span>{job.experience}</span>
                         </div>
-                         {/* Thêm View Count nếu muốn */}
                         <div className="meta-item">
                             <span className="icon">👁️</span>
                             <span>{job.viewCount} lượt xem</span>
@@ -233,8 +221,13 @@ const getImageUrl = (path) => {
 
                 <div className="header-right">
                     <div className="company-card">
-                        <img src={job.logo} alt={job.company} className="company-logo" 
-                             onError={(e) => e.target.src = "https://via.placeholder.com/150?text=No+Logo"} 
+                        {/* Ảnh Logo đã được xử lý URL, thêm onError fallback */}
+                        <img 
+                            src={job.logo} 
+                            alt={job.company} 
+                            className="company-logo"
+                            key={job.logo} 
+                            onError={(e) => e.target.style.display = 'none'} 
                         />
                         <h3 className="company-name">{job.company}</h3>
 
@@ -274,24 +267,23 @@ const getImageUrl = (path) => {
 
                         <h3>Mô tả công việc</h3>
                         <ul className="list-disc">
-                            {job.description.map((item, index) => (
+                            {job.descriptionList.map((item, index) => (
                                 <li key={index}>{item}</li>
                             ))}
                         </ul>
 
                         <h3>Yêu cầu</h3>
                         <ul className="list-disc">
-                            {job.jobRequirements.map((item, index) => (
+                            {job.requirementsList.map((item, index) => (
                                 <li key={index}>{item}</li>
                             ))}
                         </ul>
 
-                        {/* Mục Chuyên môn */}
-                        {job.expertise && job.expertise.length > 0 && (
+                        {job.expertiseList && job.expertiseList.length > 0 && (
                             <>
                                 <h3>Chuyên môn (Tham khảo)</h3>
                                 <ul className="list-disc">
-                                    {job.expertise.map((item, index) => (
+                                    {job.expertiseList.map((item, index) => (
                                         <li key={index}>{item}</li>
                                     ))}
                                 </ul>
@@ -300,39 +292,35 @@ const getImageUrl = (path) => {
 
                         <h3>Quyền lợi</h3>
                         <ul className="list-disc">
-                            {job.benefits.map((item, index) => (
+                            {job.benefitsList.map((item, index) => (
                                 <li key={index}>{item}</li>
                             ))}
                         </ul>
 
                         {/* Gallery ảnh */}
-                        {job.images && job.images.length > 0 && (
-                            <div className="job-images">
-                                <h3>Hình ảnh văn phòng</h3>
-                                <div className="image-gallery">
-                                    {job.images.map((image, index) => {
-                                        // Bỏ qua nếu ảnh trùng với logo hoặc rỗng
-                                        if(!image || image === job.logo) return null;
-                                        
-                                        return (
-                                            <div
-                                                key={index}
-                                                className="gallery-item"
-                                                onClick={() => openImageModal(image)}
-                                            >
-                                                <img
-                                                    src={image}
-                                                    alt={`Ảnh ${index + 1}`}
-                                                    onError={(e) => {
-                                                        e.target.style.display = 'none'; // Ẩn ảnh lỗi
-                                                    }}
-                                                />
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                        {job.images && job.images.some(img => img) && (
+                        <div className="job-images">
+                            <h3>Hình ảnh văn phòng</h3>
+                            <div className="image-gallery">
+                                {job.images.map((image, index) => {
+                                    if (!image || image === job.logo) return null;
+                                    return (
+                                        <div
+                                            key={index}
+                                            className="gallery-item"
+                                            onClick={() => setSelectedImage(image)}
+                                        >
+                                            <img
+                                                src={image}
+                                                alt={`Ảnh ${index + 1}`}
+                                                onError={(e) => e.target.style.display = 'none'} // Ẩn ngay nếu lỗi
+                                            />
+                                        </div>
+                                    );
+                                })}
                             </div>
-                        )}
+                        </div>
+                    )}
                     </div>
                 </section>
 
@@ -366,10 +354,11 @@ const getImageUrl = (path) => {
                 </aside>
             </main>
 
+            {/* Modal xem ảnh */}
             {selectedImage && (
-                <div className="image-modal" onClick={closeImageModal}>
+                <div className="image-modal" onClick={() => setSelectedImage(null)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <span className="close-btn" onClick={closeImageModal}>&times;</span>
+                        <span className="close-btn" onClick={() => setSelectedImage(null)}>&times;</span>
                         <img src={selectedImage} alt="Preview" />
                     </div>
                 </div>

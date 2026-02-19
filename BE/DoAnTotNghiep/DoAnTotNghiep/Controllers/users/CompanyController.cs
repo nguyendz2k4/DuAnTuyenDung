@@ -7,7 +7,7 @@ namespace DoAnTotNghiep.Controllers.users
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CompanyController : Controller
+    public class CompanyController : ControllerBase
     {
         private readonly AppDbContext _context;
 

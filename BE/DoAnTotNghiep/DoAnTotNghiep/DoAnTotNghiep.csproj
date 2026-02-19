@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <Folder Include="Controllers\admin\" />
-    <Folder Include="Models\" />
     <Folder Include="wwwroot\uploads\companies\logos\" />
     <Folder Include="wwwroot\uploads\jobs\imgs\" />
     <Folder Include="wwwroot\uploads\sliders\" />
