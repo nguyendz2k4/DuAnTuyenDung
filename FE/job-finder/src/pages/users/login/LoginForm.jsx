@@ -1,41 +1,47 @@
-// LoginForm.jsx
+
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./LoginForm.scss";
 
+const API_BASE_URL = "https://localhost:7099/api";
+
 export default function LoginForm() {
-    const [email, setEmail] = useState("");
+    const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    const navigate = useNavigate();
 
     const handleLogin = async () => {
         setLoading(true);
         setError("");
 
         try {
-            // TODO: Thay đổi URL này thành API backend của bạn
-            const response = await fetch("http://localhost/DuAnWebTuyenDung/BE/api/auth/login.php", {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    email: email,
-                    password: password
-                })
+                    userName,
+                    password,
+                    rememberMe: false,
+                }),
             });
 
             const data = await response.json();
 
-            if (data.success) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                window.location.href = '/';
+            if (response.ok) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("user", JSON.stringify(data.user));
+                navigate("/");
             } else {
-                setError(data.message || "Đăng nhập thất bại");
+                // Lấy message lỗi từ response C# trả về
+                setError(data.message || data.title || "Đăng nhập thất bại");
             }
         } catch (err) {
-            setError("Có lỗi xảy ra khi đăng nhập");
+            setError("Không thể kết nối đến máy chủ");
             console.error(err);
         } finally {
             setLoading(false);
@@ -43,32 +49,16 @@ export default function LoginForm() {
     };
 
     const loginWithGoogle = () => {
-        const redirectBack = encodeURIComponent(window.location.origin);
-        window.location.href =
-            `http://localhost/DuAnWebTuyenDung/BE/api/auth/google.php?state_redirect=${redirectBack}`;
+        window.location.href = "https://localhost:7099/api/auth/google-login";
     };
-
 
     const loginWithFacebook = () => {
-        // TODO: Thay YOUR_FACEBOOK_APP_ID bằng App ID của bạn
-        const facebookAppId = "YOUR_FACEBOOK_APP_ID";
-        const redirectUri = encodeURIComponent(window.location.origin + "/auth/facebook/callback");
-
-        const facebookAuthUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${facebookAppId}&redirect_uri=${redirectUri}&scope=email,public_profile`;
-
-        window.location.href = facebookAuthUrl;
-    };
-
-    const handleBack = () => {
-        window.history.back();
-        // Hoặc nếu dùng react-router-dom: 
-        // import { useNavigate } from 'react-router-dom';
-        // const navigate = useNavigate();
-        // navigate(-1);
+        // TODO: Tích hợp Facebook OAuth cho C# (dùng AddFacebook() trong Program.cs)
+        window.location.href = `${API_BASE_URL}/auth/facebook-login`;
     };
 
     const handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === "Enter") {
             handleLogin();
         }
     };
@@ -77,7 +67,7 @@ export default function LoginForm() {
         <div className="login-container">
             <div className="login-box">
                 {/* Nút Back */}
-                <button className="btn-back" onClick={handleBack}>
+                <button className="btn-back" onClick={() => navigate(-1)}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M19 12H5M12 19l-7-7 7-7" />
                     </svg>
@@ -94,12 +84,12 @@ export default function LoginForm() {
 
                 <div className="form-login">
                     <div className="form-group">
-                        <label>Email</label>
+                        <label>Email hoặc Tên đăng nhập</label>
                         <input
-                            type="email"
-                            placeholder="Nhập email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            type="text"
+                            placeholder="Nhập email hoặc tên đăng nhập"
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
                             onKeyPress={handleKeyPress}
                         />
                     </div>
@@ -116,7 +106,7 @@ export default function LoginForm() {
                     </div>
 
                     <button
-                        className={`btn-login ${loading ? 'loading' : ''}`}
+                        className={`btn-login ${loading ? "loading" : ""}`}
                         onClick={handleLogin}
                         disabled={loading}
                     >
@@ -148,7 +138,7 @@ export default function LoginForm() {
                 </div>
 
                 <div className="signup-link">
-                    <span>Bạn chưa có tài khoản? </span>
+                    <span>Bạn chưa có tài khoản?</span>
                     <a href="/register">Tạo tài khoản</a>
                 </div>
             </div>

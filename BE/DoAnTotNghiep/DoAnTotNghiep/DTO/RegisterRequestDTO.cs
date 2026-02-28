@@ -1,5 +1,4 @@
-﻿
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace DoAnTotNghiep.DTO
 {
@@ -16,8 +15,14 @@ namespace DoAnTotNghiep.DTO
         public required string Password { get; set; }
 
         [Required(ErrorMessage = "Họ tên là bắt buộc")]
-        public required string FullName { get; set; } 
+        public required string FullName { get; set; }
 
         public string? AccountType { get; set; } = "JobSeeker";
+    }
+
+    public class RegisterResponseDTO
+    {
+        public string Message { get; set; } = string.Empty;
+        public int UserId { get; set; }
     }
 }

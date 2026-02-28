@@ -8,7 +8,10 @@ export default function GoogleCallback() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
-    const userStr = params.get("user"); // JSON string đã urlencode
+    const userStr = params.get("user");
+
+    console.log("token:", token);
+    console.log("userStr:", userStr);
 
     if (token) localStorage.setItem("token", token);
     if (userStr) localStorage.setItem("user", userStr);

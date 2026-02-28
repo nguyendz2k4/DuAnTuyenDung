@@ -9,7 +9,6 @@ namespace DoAnTotNghiep.Mappings
         public JobProfile()
         {
             CreateMap<JobPost, JobDto>()
-                // ===== MAPPING CƠ BẢN (Tự động map từ JobPost) =====
                 .ForMember(dest => dest.JobId, opt => opt.MapFrom(src => src.JobId))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))

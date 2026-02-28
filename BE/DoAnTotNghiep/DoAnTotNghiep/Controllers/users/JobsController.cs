@@ -16,7 +16,6 @@ namespace DoAnTotNghiep.Controllers.users
             _context = context;
         }
 
-        // ✅ THAY ĐỔI: Return type rõ ràng là PagedResult<JobListDto>
         [HttpGet]
         public async Task<ActionResult<PagedResult<JobListDto>>> GetJob(
             int page = 1,
@@ -151,7 +150,7 @@ namespace DoAnTotNghiep.Controllers.users
                 .Select(x => new JobListDto
                 {
                     JobId = x.jp.JobId,
-                    EmployerId = x.jp.EmployerId ?? 0, // Xử lý null nếu cần
+                    EmployerId = x.jp.EmployerId ?? 0, 
                     Title = x.jp.Title,
                     SalaryRange = x.jp.SalaryRange,
                     Location = x.jp.Location,

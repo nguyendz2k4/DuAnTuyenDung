@@ -1,5 +1,6 @@
-﻿using DoAnTotNghiep.Models;
-using DoAnTotNghiep.DTO;
+﻿using DoAnTotNghiep.DTO;
+using DoAnTotNghiep.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -33,19 +34,21 @@ namespace DoAnTotNghiep.Controllers
 
         // --- 1. ĐĂNG KÝ ---
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDTO model)
+        [ProducesResponseType(typeof(RegisterResponseDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<RegisterResponseDTO>> Register([FromBody] RegisterRequestDTO model)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                // B1: Tạo tài khoản đăng nhập (Identity)
                 var appUser = new ApplicationUser
                 {
-                    UserName = model.UserName, // Lấy UserName từ DTO của bạn
+                    UserName = model.UserName,
                     Email = model.Email,
-                    EmailConfirmed = true // Tạm thời active luôn
+                    EmailConfirmed = true
                 };
 
                 var result = await _userManager.CreateAsync(appUser, model.Password);
@@ -54,12 +57,11 @@ namespace DoAnTotNghiep.Controllers
                     return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
                 }
 
-                // B2: Tạo hồ sơ người dùng (Bảng User cũ)
                 var domainUser = new User
                 {
-                    IdentityUserId = appUser.Id, // <--- MẤU CHỐT: LIÊN KẾT 2 BẢNG
+                    IdentityUserId = appUser.Id,
                     FullName = model.FullName,
-                    AccountType = model.AccountType, // Lấy AccountType từ DTO (mặc định là JobSeeker)
+                    AccountType = model.AccountType,
                     Status = 1,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
@@ -69,10 +71,13 @@ namespace DoAnTotNghiep.Controllers
                 _context.DomainUsers.Add(domainUser);
                 await _context.SaveChangesAsync();
 
-                // B3: Commit Transaction
                 await transaction.CommitAsync();
 
-                return Ok(new { Message = "Đăng ký thành công!", UserId = domainUser.UserId });
+                return Ok(new RegisterResponseDTO
+                {
+                    Message = "Đăng ký thành công!",
+                    UserId = domainUser.UserId
+                });
             }
             catch (Exception ex)
             {
@@ -83,7 +88,10 @@ namespace DoAnTotNghiep.Controllers
 
         // --- 2. ĐĂNG NHẬP ---
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDTO model)
+        [ProducesResponseType(typeof(LoginResponseDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginRequestDTO model)
         {
             // B1: Tìm user trong Identity
             var appUser = await _userManager.FindByEmailAsync(model.UserName); // Thử tìm bằng Email
@@ -101,17 +109,16 @@ namespace DoAnTotNghiep.Controllers
 
             if (userProfile == null)
             {
-                // Trường hợp hy hữu: Có tk Identity nhưng chưa có Profile (dữ liệu lỗi)
                 return BadRequest(new { Message = "Lỗi dữ liệu: Không tìm thấy hồ sơ người dùng." });
             }
 
             // B4: Tạo JWT Token
             var token = GenerateJwtToken(appUser, userProfile);
 
-            return Ok(new
+            return Ok(new LoginResponseDTO
             {
                 Token = token,
-                User = new
+                User = new UserInfoDTO
                 {
                     Id = userProfile.UserId,
                     FullName = userProfile.FullName,
@@ -122,24 +129,140 @@ namespace DoAnTotNghiep.Controllers
                 }
             });
         }
+        //Đăng nhập gg
+        [HttpGet("google-response")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
+            if (!authenticateResult.Succeeded)
+                return BadRequest("Lỗi xác thực Google.");
+
+            var claims = authenticateResult.Principal.Identities.FirstOrDefault()?.Claims;
+            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var fullName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+            var googleId = claims?.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var avatar = authenticateResult.Principal.FindFirst("picture")?.Value
+          ?? authenticateResult.Principal.FindFirst("urn:google:picture")?.Value
+          ?? authenticateResult.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/uri")?.Value;
+
+
+            // SỬA CẢNH BÁO: Kiểm tra luôn googleId để đảm bảo nó không null
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(googleId))
+                return BadRequest("Không lấy được thông tin email hoặc ID từ Google.");
+
+            var appUser = await _userManager.FindByEmailAsync(email);
+
+            // SỬA CẢNH BÁO: Thêm dấu ? vào chữ User để báo hiệu biến này có thể null lúc khởi tạo
+            User? domainUser = null;
+
+            if (appUser == null)
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    appUser = new ApplicationUser
+                    {
+                        UserName = email,
+                        Email = email,
+                        EmailConfirmed = true
+                    };
+                    var createResult = await _userManager.CreateAsync(appUser);
+                    if (!createResult.Succeeded) throw new Exception("Không thể tạo tài khoản Identity");
+
+                    await _userManager.AddLoginAsync(appUser, new UserLoginInfo("Google", googleId, "Google"));
+
+                    domainUser = new User
+                    {
+                        IdentityUserId = appUser.Id,
+                        FullName = fullName,
+                        AccountType = "JobSeeker",
+                        GoogleId = googleId,
+                        Avatar = avatar,
+                        Status = 1,
+                        IsVerified = 1,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
+                        LastLogin = DateTime.Now
+                    };
+                    _context.DomainUsers.Add(domainUser);
+                    await _context.SaveChangesAsync();
+
+                    var userProfile = new UserProfile
+                    {
+                        UserId = domainUser.UserId,
+                        FullName = fullName,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    };
+                    _context.UserProfiles.Add(userProfile);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, $"Lỗi lưu dữ liệu: {ex.Message}");
+                }
+            }
+            else
+            {
+                domainUser = await _context.DomainUsers.FirstOrDefaultAsync(u => u.IdentityUserId == appUser.Id);
+                if (domainUser != null)
+                {
+                    domainUser.LastLogin = DateTime.Now;
+                    domainUser.Avatar = avatar;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            // SỬA CẢNH BÁO: Kiểm tra domainUser trước khi tạo Token để chắc chắn nó không null
+            if (domainUser == null)
+            {
+                return BadRequest("Lỗi đồng bộ dữ liệu người dùng.");
+            }
+
+            // Lúc này truyền domainUser vào hàm sẽ không còn báo vàng nữa
+            var token = GenerateJwtToken(appUser, domainUser);
+
+            var userInfo = new
+            {
+                Id = domainUser.UserId,
+                FullName = domainUser.FullName,
+                Email = appUser.Email,
+                Role = domainUser.AccountType,
+                Avatar = domainUser.Avatar
+            };
+
+            var userStr = Uri.EscapeDataString(System.Text.Json.JsonSerializer.Serialize(userInfo));
+
+            return Redirect($"http://localhost:3000/google-callback?token={token}&user={userStr}");
+        }
+
+        [HttpGet("google-login")]
+        public IActionResult GoogleLogin()
+        {
+            var redirectUrl = Url.Action("GoogleResponse", "Auth");
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
+            return Challenge(properties, "Google");
+        }
 
         // --- HÀM TẠO TOKEN ---
         private string GenerateJwtToken(ApplicationUser appUser, User userProfile)
         {
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, appUser.Id), // ID của Identity (GUID)
+                new Claim(JwtRegisteredClaimNames.Sub, appUser.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.NameIdentifier, appUser.Id),
-                
-                // Thêm các thông tin nghiệp vụ vào Token để React dễ dùng
-                new Claim("UserId", userProfile.UserId.ToString()), // ID int của bảng cũ
+                new Claim("UserId", userProfile.UserId.ToString()),
                 new Claim("FullName", userProfile.FullName ?? ""),
                 new Claim(ClaimTypes.Role, userProfile.AccountType ?? "User"),
                 new Claim(ClaimTypes.Email, appUser.Email ?? "")
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "Day_La_Key_Bi_Mat_Cua_Ban_Phai_Rat_Dai_Nhe_@@@123"));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                _configuration["Jwt:Key"] ?? "Day_La_Key_Bi_Mat_Cua_Ban_Phai_Rat_Dai_Nhe_@@@123"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.Now.AddDays(1);
 
