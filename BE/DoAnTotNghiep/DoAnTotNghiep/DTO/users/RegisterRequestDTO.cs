@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DoAnTotNghiep.DTO
+namespace DoAnTotNghiep.DTO.users
 {
     public class RegisterRequestDTO
     {
@@ -19,7 +19,6 @@ namespace DoAnTotNghiep.DTO
 
         public string? AccountType { get; set; } = "JobSeeker";
     }
-
     public class RegisterResponseDTO
     {
         public string Message { get; set; } = string.Empty;

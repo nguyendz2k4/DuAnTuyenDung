@@ -1,4 +1,4 @@
-﻿using DoAnTotNghiep.DTO;
+﻿using DoAnTotNghiep.DTO.users;
 using DoAnTotNghiep.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -163,7 +163,6 @@ namespace DoAnTotNghiep.Controllers.users
                 })
                 .ToListAsync();
 
-            // ✅ THAY ĐỔI: Sử dụng PagedResult để đóng gói dữ liệu
             var result = new PagedResult<JobListDto>(jobs, page, limit, totalJobs);
 
             return Ok(result);

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DoAnTotNghiep.DTO
+namespace DoAnTotNghiep.DTO.users
 {
     public class LoginRequestDTO
     {

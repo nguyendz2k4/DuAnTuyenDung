@@ -1,11 +1,9 @@
 import { memo, useState, useRef, useEffect } from "react";
-// SỬA LỖI 1: Gộp import, chỉ khai báo 1 lần duy nhất
 import { Link, useNavigate } from "react-router-dom";
 import { FiBell, FiMessageCircle, FiUser, FiMapPin, FiLogOut } from "react-icons/fi";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { IoIosSearch, IoIosList } from "react-icons/io";
 import JoblistDropdown from "./JoblistDropdown";
-// Đảm bảo đường dẫn ảnh đúng với dự án của bạn
 import logo from "../../../../assets/imgs/logo/topcv-logo-6.png";
 import "./style.scss";
 

@@ -10,15 +10,20 @@ export default function GoogleCallback() {
     const token = params.get("token");
     const userStr = params.get("user");
 
-    console.log("token:", token);
-    console.log("userStr:", userStr);
-
     if (token) localStorage.setItem("token", token);
-    if (userStr) localStorage.setItem("user", userStr);
+    if (userStr) {
+      const parsed = JSON.parse(decodeURIComponent(userStr));
+      const normalized = {
+        id: parsed.Id || parsed.id,
+        full_name: parsed.FullName || parsed.full_name,
+        email: parsed.Email || parsed.email,
+        avatar: parsed.Avatar || parsed.avatar,
+        role: parsed.Role || parsed.role,
+      };
+      localStorage.setItem("user", JSON.stringify(normalized));
+    }
 
-    // về home
     navigate(ROUTES.USER.HOME, { replace: true });
   }, [navigate]);
-
   return <div style={{ padding: 20 }}>Đang đăng nhập...</div>;
 }

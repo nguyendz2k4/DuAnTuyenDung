@@ -10,11 +10,11 @@ export default function UserDropdown() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    const storedFullName = localStorage.getItem("fullName");
     const storedEmail = localStorage.getItem("email");
 
-    if (storedUser) {
-      setUserName(storedUser);
+    if (storedFullName) {
+      setUserName(storedFullName);
     }
     if (storedEmail) {
       setUserEmail(storedEmail);
@@ -30,10 +30,11 @@ export default function UserDropdown() {
   }
 
   function handleLogout() {
-    localStorage.removeItem("user");
+    localStorage.removeItem("fullName");
     localStorage.removeItem("email");
     localStorage.removeItem("userId");
     localStorage.removeItem("role");
+    localStorage.removeItem("token");
 
     navigate("/signin");
   }

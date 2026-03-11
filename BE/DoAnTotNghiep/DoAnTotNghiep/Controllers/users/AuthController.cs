@@ -1,9 +1,10 @@
-﻿using DoAnTotNghiep.DTO;
+﻿using DoAnTotNghiep.DTO.users;
 using DoAnTotNghiep.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -93,14 +94,11 @@ namespace DoAnTotNghiep.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginRequestDTO model)
         {
-            // B1: Tìm user trong Identity
-            var appUser = await _userManager.FindByEmailAsync(model.UserName); // Thử tìm bằng Email
+            var appUser = await _userManager.FindByEmailAsync(model.UserName); 
             if (appUser == null)
-                appUser = await _userManager.FindByNameAsync(model.UserName); // Fallback: tìm bằng UserName
+                appUser = await _userManager.FindByNameAsync(model.UserName); 
 
             if (appUser == null) return Unauthorized(new { Message = "Tài khoản không tồn tại" });
-
-            // B2: Kiểm tra mật khẩu
             var result = await _signInManager.CheckPasswordSignInAsync(appUser, model.Password, false);
             if (!result.Succeeded) return Unauthorized(new { Message = "Sai mật khẩu" });
 
@@ -129,6 +127,41 @@ namespace DoAnTotNghiep.Controllers
                 }
             });
         }
+
+        [HttpPost("admin-login")]
+        [ProducesResponseType(typeof(LoginResponseDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
+        public async Task<ActionResult<LoginResponseDTO>> LoginAdmin([FromBody] LoginRequestDTO request) {
+            var adminapp = await _userManager.FindByEmailAsync(request.UserName);
+            if (adminapp == null)
+            {
+                return BadRequest(new { Message = "Tài khoản không tồn tại." });
+            }
+            var access = await _signInManager.CheckPasswordSignInAsync(adminapp, request.Password, false);
+            if (!access.Succeeded) return Unauthorized(new { Message = "Tài khoản hoặc mật khẩu không chính xác!" });
+
+            var profile = await _context.DomainUsers.FirstOrDefaultAsync(u => u.IdentityUserId == adminapp.Id);
+            if (profile == null) return Unauthorized(new { Message = "Không tìm thấy hồ sơ" });
+            if (profile.AccountType != "Admin") return Unauthorized(new { Message = "Bạn không có quyền truy cập." });
+            var token = GenerateJwtToken(adminapp, profile);
+
+            return Ok(new LoginResponseDTO
+            { 
+                Token = token,
+                User = new UserInfoDTO
+                {
+                    Id = profile.UserId,
+                    FullName = profile.FullName,
+                    Email = adminapp.Email,
+                    UserName = adminapp.UserName,
+                    Avatar = profile.Avatar,
+                    Role = profile.AccountType
+                }
+            });
+        }
+
         //Đăng nhập gg
         [HttpGet("google-response")]
         public async Task<IActionResult> GoogleResponse()
@@ -145,14 +178,11 @@ namespace DoAnTotNghiep.Controllers
           ?? authenticateResult.Principal.FindFirst("urn:google:picture")?.Value
           ?? authenticateResult.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/uri")?.Value;
 
-
-            // SỬA CẢNH BÁO: Kiểm tra luôn googleId để đảm bảo nó không null
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(googleId))
                 return BadRequest("Không lấy được thông tin email hoặc ID từ Google.");
 
             var appUser = await _userManager.FindByEmailAsync(email);
 
-            // SỬA CẢNH BÁO: Thêm dấu ? vào chữ User để báo hiệu biến này có thể null lúc khởi tạo
             User? domainUser = null;
 
             if (appUser == null)
@@ -216,13 +246,11 @@ namespace DoAnTotNghiep.Controllers
                 }
             }
 
-            // SỬA CẢNH BÁO: Kiểm tra domainUser trước khi tạo Token để chắc chắn nó không null
             if (domainUser == null)
             {
                 return BadRequest("Lỗi đồng bộ dữ liệu người dùng.");
             }
 
-            // Lúc này truyền domainUser vào hàm sẽ không còn báo vàng nữa
             var token = GenerateJwtToken(appUser, domainUser);
 
             var userInfo = new

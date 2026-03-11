@@ -1,4 +1,4 @@
-﻿namespace DoAnTotNghiep.DTO
+﻿namespace DoAnTotNghiep.DTO.users
 {
     public class JobListDto
     {

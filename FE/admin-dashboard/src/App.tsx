@@ -40,7 +40,7 @@ export default function App() {
         <Route
           path="/"
           element={
-            <PrivateRoute allowedRoles={["admin", "employer"]}>
+            <PrivateRoute allowedRoles={["Admin", "employer"]}>
               <AppLayout />
             </PrivateRoute>
           }

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using DoAnTotNghiep.DTO;
+using DoAnTotNghiep.DTO.users;
 using DoAnTotNghiep.Models;
 
 namespace DoAnTotNghiep.Mappings

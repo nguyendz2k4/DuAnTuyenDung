@@ -1,4 +1,4 @@
-﻿using DoAnTotNghiep.DTO;
+﻿using DoAnTotNghiep.DTO.users;
 using DoAnTotNghiep.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
