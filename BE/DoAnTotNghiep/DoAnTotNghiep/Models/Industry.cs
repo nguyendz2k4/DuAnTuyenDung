@@ -17,4 +17,5 @@ public partial class Industry
     [Column("name_industry")]
     [StringLength(255)]
     public string? NameIndustry { get; set; }
+
 }

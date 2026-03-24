@@ -1,0 +1,44 @@
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\components\charts\line\LineChartOne.tsx[24m[0m
+[0m  [2m24:6[22m  [33mwarning[39m  React Hook useEffect has a missing dependency: 'fetchRevenueData'. Either include it or remove the dependency array  [2mreact-hooks/exhaustive-deps[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\components\ecommerce\CountryMap.tsx[24m[0m
+[0m  [2m19:14[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\components\header\AllNotificationsPage.tsx[24m[0m
+[0m  [2m24:8[22m  [33mwarning[39m  React Hook useEffect has a missing dependency: 'fetchNotifications'. Either include it or remove the dependency array  [2mreact-hooks/exhaustive-deps[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\components\header\NotificationDropdown.tsx[24m[0m
+[0m   [2m7:10[22m  [31merror[39m    'loading' is assigned a value but never used                                                                           [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m7:19[22m  [31merror[39m    'setLoading' is assigned a value but never used                                                                        [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m29:6[22m   [33mwarning[39m  React Hook useEffect has a missing dependency: 'fetchNotifications'. Either include it or remove the dependency array  [2mreact-hooks/exhaustive-deps[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\components\header\UserDropdown.tsx[24m[0m
+[0m  [2m4:10[22m  [31merror[39m  'Link' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\context\SidebarContext.tsx[24m[0m
+[0m  [2m18:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\context\ThemeContext.tsx[24m[0m
+[0m  [2m52:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\pages\AuthPages\SignIn.tsx[24m[0m
+[0m  [2m2:23[22m  [31merror[39m  'Link' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\pages\Calendar.tsx[24m[0m
+[0m  [2m267:40[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\pages\Forms\FormElements.tsx[24m[0m
+[0m  [2m174:21[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\pages\Forms\application.tsx[24m[0m
+[0m  [2m30:6[22m  [33mwarning[39m  React Hook useEffect has a missing dependency: 'fetchApplications'. Either include it or remove the dependency array  [2mreact-hooks/exhaustive-deps[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\pages\UserProfiles.tsx[24m[0m
+[0m  [2m67:21[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\admin-dashboard\src\svg.d.ts[24m[0m
+[0m  [2m2:18[22m  [31merror[39m  A `require()` style import is forbidden  [2m@typescript-eslint/no-require-imports[22m[0m
+[0m[0m
+[0m[31m[1m✖ 15 problems (9 errors, 6 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m

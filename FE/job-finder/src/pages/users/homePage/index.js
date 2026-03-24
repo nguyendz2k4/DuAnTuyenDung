@@ -8,12 +8,12 @@ import { FaRegHeart, FaHeart, FaChevronDown, FaCheck } from "react-icons/fa";
 import logo_title from "../../../assets/imgs/logo/label-toppy-ai.png";
 import logo_default from "../../../assets/imgs/logo_cty/conca.jpg"; // Logo mặc định
 import "./style.scss";
-import Pagination from "./Pagination";
-import Slider from "./Slider";
-import { useFavorite } from "../Context/FavoriteContext";
+import Pagination from "../../../components/common/Pagination";
+import Slider from "../../../components/common/Slider";
+import { useFavorite } from "../../../context/FavoriteContext";
 
 // CẤU HÌNH API URL CHUNG (Dễ sửa đổi sau này)
-const API_BASE_URL = "https://localhost:7099"; 
+const API_BASE_URL = "http://192.168.1.4:7099"; 
 
 const HomePage = () => {
   const { toggleFavorite, isFavorite } = useFavorite();

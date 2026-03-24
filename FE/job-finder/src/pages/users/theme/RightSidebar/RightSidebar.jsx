@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FiHeart, FiUserPlus, FiShield, FiMessageSquare, FiHeadphones } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import { useFavorite } from "../../Context/FavoriteContext"; 
+import { useFavorite } from "../../../../context/FavoriteContext"; 
 import SupportPopup from "./SupportPopup";
 import FeedbackPopup from "./FeedbackPopup";
 

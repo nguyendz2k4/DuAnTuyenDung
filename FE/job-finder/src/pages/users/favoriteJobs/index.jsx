@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useFavorite } from "../Context/FavoriteContext";
+import { useFavorite } from "../../../context/FavoriteContext";
 import { Link } from "react-router-dom";
 import { FaHeart } from "react-icons/fa";
 import axios from "axios";
@@ -7,7 +7,7 @@ import logo1 from "../../../assets/imgs/logo_cty/conca.jpg";
 import "./style.scss";
 
 // Cấu hình URL giống bên HomePage
-const API_BASE_URL = "https://localhost:7099"; 
+const API_BASE_URL = "http://192.168.1.4:7099"; 
 
 const FavoriteJobs = () => {
     const { favorites, toggleFavorite } = useFavorite();

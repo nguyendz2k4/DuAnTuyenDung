@@ -1,7 +1,7 @@
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import ApplyModal from "./ApplyModal";
+import ApplyModal from "../../../components/common/ApplyModal";
 import "./detailJob.scss";
 
 const DetailJob = () => {
@@ -18,7 +18,7 @@ const DetailJob = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const API_BASE_URL = "https://localhost:7099"; 
+    const API_BASE_URL = "http://192.168.1.4:7099"; 
 
     const resolveUrl = (path) => {
         if (!path) return "https://via.placeholder.com/150?text=No+Image";

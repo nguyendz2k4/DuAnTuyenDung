@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://0.0.0.0:7099");
+builder.Services.AddHttpClient();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -22,7 +24,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "Day_La_Key_Bi_Mat_Cua_Ban_Phai_Rat_Dai_Nhe_@@@123";
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "saoanhlaideptraivay-nguyen2k4";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "TuyenDungApp";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "TuyenDungClient";
 
@@ -62,12 +64,16 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+        policy.WithOrigins(
+                "http://192.168.1.4:3000"   
+              )
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
+
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -80,12 +86,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseRouting();
 
-app.UseHttpsRedirection();
-app.UseCors("AllowReactApp");
-app.UseAuthentication();
-app.UseAuthorization();
+//app.UseHttpsRedirection();
+app.UseRouting();      
+app.UseCors("AllowReactApp"); 
+app.UseAuthentication(); 
+app.UseAuthorization();  
 app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {

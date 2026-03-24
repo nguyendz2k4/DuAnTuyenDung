@@ -31,4 +31,5 @@ public partial class JobPostFeature
 
     [Column("priority")]
     public int? Priority { get; set; }
+    
 }

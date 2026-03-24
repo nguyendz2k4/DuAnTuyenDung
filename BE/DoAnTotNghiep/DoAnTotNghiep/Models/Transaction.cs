@@ -30,4 +30,6 @@ public partial class Transaction
     [Column("created_at")]
     [Precision(0)]
     public DateTime? CreatedAt { get; set; }
+    [ForeignKey("PackageId")]
+    public virtual ServicePackage? ServicePackage { get; set; }
 }

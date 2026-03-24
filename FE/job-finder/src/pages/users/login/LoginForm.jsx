@@ -1,47 +1,41 @@
-
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./LoginForm.scss";
-
-const API_BASE_URL = "https://localhost:7099/api";
+import api from "../../../services/api";
 
 export default function LoginForm() {
     const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
 
-    const handleLogin = async () => {
+    const handleLogin = async (e) => {
+        e.preventDefault();
         setLoading(true);
         setError("");
 
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    userName,
-                    password,
-                    rememberMe: false,
-                }),
+            const data = await api.post("/auth/login", {
+                userName,
+                password,
+                rememberMe: false,
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("user", JSON.stringify(data.user));
-                navigate("/");
-            } else {
-                // Lấy message lỗi từ response C# trả về
-                setError(data.message || data.title || "Đăng nhập thất bại");
-            }
+            // Nếu post thành công, axios nó return raw data (theo cái api config của mình)
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+            navigate("/");
+            
         } catch (err) {
-            setError("Không thể kết nối đến máy chủ");
+            if (err.response && err.response.data) {
+                const data = err.response.data;
+                setError(data.message || data.title || "Đăng nhập thất bại");
+            } else {
+                setError("Không thể kết nối đến máy chủ");
+            }
             console.error(err);
         } finally {
             setLoading(false);
@@ -49,26 +43,20 @@ export default function LoginForm() {
     };
 
     const loginWithGoogle = () => {
-        window.location.href = "https://localhost:7099/api/auth/google-login";
+        window.location.href = `${api.defaults.baseURL}/auth/google-login`;
     };
 
     const loginWithFacebook = () => {
         // TODO: Tích hợp Facebook OAuth cho C# (dùng AddFacebook() trong Program.cs)
-        window.location.href = `${API_BASE_URL}/auth/facebook-login`;
-    };
-
-    const handleKeyPress = (e) => {
-        if (e.key === "Enter") {
-            handleLogin();
-        }
+        window.location.href = `${api.defaults.baseURL}/auth/facebook-login`;
     };
 
     return (
         <div className="login-container">
             <div className="login-box">
                 {/* Nút Back */}
-                <button className="btn-back" onClick={() => navigate(-1)}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <button className="btn-back" type="button" onClick={() => navigate(-1)}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7" />
                     </svg>
                     <span>Trở về</span>
@@ -78,48 +66,92 @@ export default function LoginForm() {
 
                 {error && (
                     <div className="error-message">
-                        {error}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span>{error}</span>
                     </div>
                 )}
 
-                <div className="form-login">
+                <form className="form-login" onSubmit={handleLogin}>
                     <div className="form-group">
-                        <label>Email hoặc Tên đăng nhập</label>
-                        <input
-                            type="text"
-                            placeholder="Nhập email hoặc tên đăng nhập"
-                            value={userName}
-                            onChange={(e) => setUserName(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                        />
+                        <label htmlFor="login-username">Email hoặc Tên đăng nhập</label>
+                        <div className="input-wrapper">
+                            <span className="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </span>
+                            <input
+                                id="login-username"
+                                type="text"
+                                placeholder="Nhập email hoặc tên đăng nhập"
+                                value={userName}
+                                onChange={(e) => setUserName(e.target.value)}
+                                disabled={loading}
+                                required
+                            />
+                        </div>
                     </div>
 
                     <div className="form-group">
-                        <label>Mật khẩu</label>
-                        <input
-                            type="password"
-                            placeholder="Nhập mật khẩu"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                        />
+                        <label htmlFor="login-password">Mật khẩu</label>
+                        <div className="input-wrapper">
+                            <span className="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                            <input
+                                id="login-password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Nhập mật khẩu"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                disabled={loading}
+                                required
+                            />
+                            <button 
+                                type="button" 
+                                className="toggle-password" 
+                                onClick={() => setShowPassword(!showPassword)}
+                                tabIndex="-1"
+                                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                            >
+                                {showPassword ? (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                                    </svg>
+                                ) : (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
                     </div>
 
                     <button
+                        type="submit"
                         className={`btn-login ${loading ? "loading" : ""}`}
-                        onClick={handleLogin}
                         disabled={loading}
                     >
                         {loading ? "Đang xử lý..." : "Đăng nhập"}
                     </button>
-                </div>
+                </form>
 
                 <div className="divider">
                     <span>Hoặc đăng nhập bằng</span>
                 </div>
 
                 <div className="social-login">
-                    <button className="btn-social google" onClick={loginWithGoogle}>
+                    <button type="button" className="btn-social google" onClick={loginWithGoogle} disabled={loading}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -129,7 +161,7 @@ export default function LoginForm() {
                         <span>Google</span>
                     </button>
 
-                    <button className="btn-social facebook" onClick={loginWithFacebook}>
+                    <button type="button" className="btn-social facebook" onClick={loginWithFacebook} disabled={loading}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
                             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                         </svg>
@@ -139,7 +171,7 @@ export default function LoginForm() {
 
                 <div className="signup-link">
                     <span>Bạn chưa có tài khoản?</span>
-                    <a href="/register">Tạo tài khoản</a>
+                    <Link to="/register">Tạo tài khoản</Link>
                 </div>
             </div>
         </div>

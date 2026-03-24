@@ -1,0 +1,14 @@
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\job-finder\src\pages\users\homePage\index.js[24m[0m
+[0m  [2m148:6[22m  [33mwarning[39m  React Hook useEffect has a missing dependency: 'fetchJobs'. Either include it or remove the dependency array  [2mreact-hooks/exhaustive-deps[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\job-finder\src\pages\users\theme\header\index.js[24m[0m
+[0m   [2m3:43[22m  [33mwarning[39m  'FiMapPin' is defined but never used                                                                                                                                                                                                                                                                                                                               [2mno-unused-vars[22m[0m
+[0m  [2m12:12[22m  [33mwarning[39m  'showLocation' is assigned a value but never used                                                                                                                                                                                                                                                                                                                  [2mno-unused-vars[22m[0m
+[0m  [2m65:29[22m  [33mwarning[39m  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  [2mjsx-a11y/anchor-is-valid[22m[0m
+[0m[0m
+[0m[4mD:\HK 1(2025-2026)\TuyenDung(.Net)\FE\job-finder\src\pages\users\theme\masterLayout\index.js[24m[0m
+[0m  [2m4:8[22m  [33mwarning[39m  'HomePage' is defined but never used  [2mno-unused-vars[22m[0m
+[0m[0m
+[0m[33m[1m✖ 5 problems (0 errors, 5 warnings)[22m[39m[0m
+[0m[33m[1m[22m[39m[0m
