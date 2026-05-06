@@ -4,76 +4,39 @@ import UserMetaCard from "../components/UserProfile/UserMetaCard";
 import UserInfoCard from "../components/UserProfile/UserInfoCard";
 import UserAddressCard from "../components/UserProfile/UserAddressCard";
 import PageMeta from "../components/common/PageMeta";
-
-type UserInfor = {
-  fullName: string | null;
-  avatar: string | null;
-  accountType: string | null;
-  status: number | null;
-  phone: string | null;
-  address: string | null;
-  // Nhà tuyển dụng
-  companyName: string | null;
-  companyWebsite: string | null;
-  companySize: string | null;
-  nameIndustry: string | null;
-  companyAddress: string | null;
-  companyPhone: string | null;
-  logo: string | null;
-  description: string | null;
-};
+import { useAuth } from "../context/AuthContext";
+import authService from "../services/authService";
+import type { UserProfile } from "../types/api";
 
 export default function UserProfiles() {
-  const [user, setUser] = useState<UserInfor | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        // 1. Lấy token và userId từ localStorage
-        const token = localStorage.getItem("token");
-        const userId = localStorage.getItem("userId"); // Thay "userId" bằng key thực tế bạn đã lưu
-
-        // 2. Kiểm tra xem các dữ liệu này có tồn tại không
-        if (!token) {
-          throw new Error("Không tìm thấy token. Vui lòng đăng nhập lại.");
-        }
-        
-        if (!userId) {
+        if (!authUser?.userId) {
           throw new Error("Không tìm thấy ID người dùng. Vui lòng đăng nhập lại.");
         }
 
-        // 3. Truyền userId vào đường dẫn API bằng backtick (`)
-        const res = await fetch(`https://localhost:7099/admin/ProfileUser/${userId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,  // gửi token lên BE
-          },
-        });
-
-        if (res.status === 401) {
-          throw new Error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
-        }
-
-        if (!res.ok) {
-          throw new Error(`Lỗi server: ${res.status}`);
-        }
-
-        const data: UserInfor = await res.json();
+        const { data } = await authService.getProfile(authUser.userId);
         setUser(data);
-
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Lỗi khi lấy profile:", err);
-        setError(err.message);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Lỗi không xác định");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserProfile();
-  }, []); // Không cần truyền id vào dependency array nữa vì nó được lấy trực tiếp bên trong
+  }, [authUser?.userId]);
 
   if (loading) {
     return (

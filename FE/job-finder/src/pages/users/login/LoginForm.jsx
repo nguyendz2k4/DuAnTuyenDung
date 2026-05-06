@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./LoginForm.scss";
-import api from "../../../services/api";
+import { useAuth } from "../../../context/AuthContext";
+import authService from "../../../services/authService";
+import { ROUTES } from "../../../utils/router";
 
 export default function LoginForm() {
     const [userName, setUserName] = useState("");
@@ -11,6 +13,11 @@ export default function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login } = useAuth();
+
+    // Nếu được redirect từ ProtectedRoute, lấy URL gốc để quay lại sau khi login
+    const redirectTo = location.state?.redirectTo || ROUTES.USER.HOME;
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -18,16 +25,11 @@ export default function LoginForm() {
         setError("");
 
         try {
-            const data = await api.post("/auth/login", {
-                userName,
-                password,
-                rememberMe: false,
-            });
+            const data = await authService.login(userName, password);
 
-            // Nếu post thành công, axios nó return raw data (theo cái api config của mình)
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
-            navigate("/");
+            // Lưu vào AuthContext (tự động sync localStorage)
+            login(data.token, data.user);
+            navigate(redirectTo);
             
         } catch (err) {
             if (err.response && err.response.data) {
@@ -43,12 +45,11 @@ export default function LoginForm() {
     };
 
     const loginWithGoogle = () => {
-        window.location.href = `${api.defaults.baseURL}/auth/google-login`;
+        window.location.href = authService.getGoogleLoginUrl();
     };
 
     const loginWithFacebook = () => {
-        // TODO: Tích hợp Facebook OAuth cho C# (dùng AddFacebook() trong Program.cs)
-        window.location.href = `${api.defaults.baseURL}/auth/facebook-login`;
+        window.location.href = authService.getFacebookLoginUrl();
     };
 
     return (
@@ -171,7 +172,7 @@ export default function LoginForm() {
 
                 <div className="signup-link">
                     <span>Bạn chưa có tài khoản?</span>
-                    <Link to="/register">Tạo tài khoản</Link>
+                    <Link to={ROUTES.USER.REGISTER}>Tạo tài khoản</Link>
                 </div>
             </div>
         </div>

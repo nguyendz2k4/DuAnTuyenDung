@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import PageMeta from '../../components/common/PageMeta';
 import ComponentCard from '../../components/common/ComponentCard';
 import Button from '../../components/ui/button/Button';
+import userService from '../../services/userService';
 
 const AddAccounts = () => {
     const [role, setRole] = useState('employer');
@@ -56,15 +57,11 @@ const AddAccounts = () => {
                 }
             }
 
-            const response = await fetch('http://localhost/DuAnWebTuyenDung/BE/admin/add_user.php', {
-                method: 'POST',
-                body: data
-            });
+            const response = await userService.addUser(data);
+            const result = response.data;
 
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                setMessage({ type: 'success', text: result.message });
+            if (result.status === 'success' || response.status === 200) {
+                setMessage({ type: 'success', text: result.message || 'Tạo tài khoản thành công!' });
 
                 // Reset form sau khi thành công
                 setFormData({

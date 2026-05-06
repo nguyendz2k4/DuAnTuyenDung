@@ -1,42 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import notificationService from '../../services/notificationService';
+import { formatTimeDetailed, getNotificationIcon } from '../../utils/formatters';
+import type { NotificationItem } from '../../types/api';
 
 export default function AllNotificationsPage() {
-    const [notifications, setNotifications] = useState([]);
-    const [filter, setFilter] = useState('all'); // all, unread, read
+    const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+    const [filter, setFilter] = useState('all');
     const [loading, setLoading] = useState(true);
     const [unreadCount, setUnreadCount] = useState(0);
+    const { user } = useAuth();
 
-    const API_BASE = 'http://localhost/DuAnWebTuyenDung/BE/admin';
+    const userId = user?.userId ? parseInt(user.userId) : 0;
 
-    const getUser = () => {
-        try {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            return user.user_id || 7;
-        } catch {
-            return 7;
-        }
-    };
-
-    const userId = getUser();
-
-    useEffect(() => {
-        fetchNotifications();
-    }, [filter]);
-
-    const fetchNotifications = async () => {
+    const fetchNotifications = useCallback(async () => {
+        if (!userId) return;
         setLoading(true);
         try {
-            const url = filter === 'unread'
-                ? `${API_BASE}/notifications.php?user_id=${userId}&limit=100&unread_only=1`
-                : `${API_BASE}/notifications.php?user_id=${userId}&limit=100`;
-
-            const response = await fetch(url);
-            const data = await response.json();
+            const unreadOnly = filter === 'unread';
+            const { data } = await notificationService.getNotifications(userId, 100, unreadOnly);
 
             if (data.success) {
                 let filteredData = data.data;
                 if (filter === 'read') {
-                    filteredData = data.data.filter(n => n.is_read === 1);
+                    filteredData = data.data.filter((n: NotificationItem) => n.is_read === 1);
                 }
                 setNotifications(filteredData);
                 setUnreadCount(data.unread_count);
@@ -46,20 +33,16 @@ export default function AllNotificationsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [userId, filter]);
 
-    const markAsRead = async (notificationId) => {
+    useEffect(() => {
+        fetchNotifications();
+    }, [fetchNotifications]);
+
+    const markAsRead = async (notificationId: number) => {
         try {
-            const response = await fetch(`${API_BASE}/notifications.php`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: userId,
-                    notification_id: notificationId
-                })
-            });
-
-            if (response.ok) {
+            const response = await notificationService.markAsRead(userId, notificationId);
+            if (response.status === 200) {
                 setNotifications(notifications.map(n =>
                     n.notification_id === notificationId ? { ...n, is_read: 1 } : n
                 ));
@@ -72,16 +55,8 @@ export default function AllNotificationsPage() {
 
     const markAllAsRead = async () => {
         try {
-            const response = await fetch(`${API_BASE}/notifications.php`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: userId,
-                    mark_all: true
-                })
-            });
-
-            if (response.ok) {
+            const response = await notificationService.markAllAsRead(userId);
+            if (response.status === 200) {
                 setNotifications(notifications.map(n => ({ ...n, is_read: 1 })));
                 setUnreadCount(0);
             }
@@ -90,44 +65,16 @@ export default function AllNotificationsPage() {
         }
     };
 
-    const handleNotificationClick = (notification) => {
+    const handleNotificationClick = (notification: NotificationItem) => {
         if (!notification.is_read) {
             markAsRead(notification.notification_id);
         }
 
         if (notification.type === 'new_application') {
-            window.location.href = '/employer/applications';
+            window.location.href = '/application';
         } else if (notification.type === 'new_message') {
-            window.location.href = '/employer/messages';
+            window.location.href = '/application';
         }
-    };
-
-    const getNotificationIcon = (type) => {
-        const icons = {
-            new_application: '📄',
-            new_message: '💬',
-            application_status: '✅'
-        };
-        return icons[type] || '📢';
-    };
-
-    const formatTime = (dateString) => {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diff = Math.floor((now - date) / 1000);
-
-        if (diff < 60) return 'Vừa xong';
-        if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
-        if (diff < 604800) return `${Math.floor(diff / 86400)} ngày trước`;
-
-        return date.toLocaleDateString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
     };
 
     return (
@@ -240,7 +187,7 @@ export default function AllNotificationsPage() {
                                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                                 />
                                             </svg>
-                                            <span>{formatTime(notif.created_at)}</span>
+                                            <span>{formatTimeDetailed(notif.created_at)}</span>
                                             {!notif.is_read && (
                                                 <>
                                                     <span className="w-1 h-1 bg-gray-400 rounded-full"></span>

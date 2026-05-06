@@ -1,25 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import { useAuth } from "../../context/AuthContext";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [userName, setUserName] = useState("Guest");
-  const [userEmail, setUserEmail] = useState("guest@example.com");
   const navigate = useNavigate();
+  const { user, logout: authLogout } = useAuth();
 
-  useEffect(() => {
-    const storedFullName = localStorage.getItem("fullName");
-    const storedEmail = localStorage.getItem("email");
-
-    if (storedFullName) {
-      setUserName(storedFullName);
-    }
-    if (storedEmail) {
-      setUserEmail(storedEmail);
-    }
-  }, []);
+  const userName = user?.fullName || "Guest";
+  const userEmail = user?.email || "guest@example.com";
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -30,12 +21,7 @@ export default function UserDropdown() {
   }
 
   function handleLogout() {
-    localStorage.removeItem("fullName");
-    localStorage.removeItem("email");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("role");
-    localStorage.removeItem("token");
-
+    authLogout();
     navigate("/signin");
   }
 

@@ -1,57 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import applicationService from '../../services/applicationService';
+import messagingService from '../../services/messagingService';
+import { API_BASE_URL } from '../../services/apiConfig';
+import { getStatusBadgeConfig } from '../../utils/formatters';
+
+interface ApplicationItem {
+  application_id: number;
+  full_name: string;
+  email: string;
+  phone: string;
+  location: string;
+  job_title: string;
+  status: string;
+  applied_at: string;
+  cover_letter?: string;
+  cv_path?: string;
+  seeker_id?: number;
+}
+
+interface MessageItem {
+  sender_id: number;
+  receiver_id: number;
+  content: string;
+  created_at: string;
+}
 
 export default function EmployerApplicationsManager() {
-  const [applications, setApplications] = useState([]);
-  const [selectedApp, setSelectedApp] = useState(null);
+  const [applications, setApplications] = useState<ApplicationItem[]>([]);
+  const [selectedApp, setSelectedApp] = useState<ApplicationItem | null>(null);
   const [showChat, setShowChat] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<MessageItem[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
+  const { user } = useAuth();
 
-  const API_BASE = 'http://localhost/DuAnWebTuyenDung/BE/admin';
+  const userId = user?.userId ? parseInt(user.userId) : 0;
 
-  const getEmployer = () => {
+  const fetchApplications = useCallback(async () => {
+    if (!userId) return;
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      return {
-        user_id: user.user_id || 7,
-        employer_id: user.employer_id || 3
-      };
-    } catch {
-      return { user_id: 7, employer_id: 3 };
-    }
-  };
-
-  const employer = getEmployer();
-
-  useEffect(() => {
-    fetchApplications();
-  }, []);
-
-  const fetchApplications = async () => {
-    try {
-      const response = await fetch(
-        `${API_BASE}/get-applications.php?employer_id=${employer.employer_id}`
-      );
-      const data = await response.json();
+      const { data } = await applicationService.getApplications(userId);
       if (data.success) {
         setApplications(data.data);
       }
     } catch (error) {
       console.error('Lỗi tải danh sách ứng viên:', error);
     }
-  };
+  }, [userId]);
 
-  const updateStatus = async (applicationId, status) => {
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
+
+  const updateStatus = async (applicationId: number, status: string) => {
     try {
-      const response = await fetch(`${API_BASE}/update-application-status.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ application_id: applicationId, status })
-      });
-
-      const data = await response.json();
+      const { data } = await applicationService.updateStatus(applicationId, status);
       if (data.success) {
         alert('Cập nhật trạng thái thành công!');
         fetchApplications();
@@ -62,17 +67,14 @@ export default function EmployerApplicationsManager() {
     }
   };
 
-  const openChat = async (application) => {
+  const openChat = async (application: ApplicationItem) => {
     setSelectedApp(application);
     setShowChat(true);
 
     const seekerId = application.seeker_id || 2;
 
     try {
-      const response = await fetch(
-        `${API_BASE}/messaging.php?user1=${employer.user_id}&user2=${seekerId}`
-      );
-      const data = await response.json();
+      const { data } = await messagingService.getMessages(userId, seekerId);
       if (data.success) {
         setMessages(data.data);
       }
@@ -82,27 +84,22 @@ export default function EmployerApplicationsManager() {
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !selectedApp) return;
 
     setLoading(true);
     try {
       const seekerId = selectedApp.seeker_id || 2;
 
-      const response = await fetch(`${API_BASE}/messaging.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sender_id: employer.user_id,
-          receiver_id: seekerId,
-          content: newMessage,
-          application_id: selectedApp.application_id
-        })
+      const { data } = await messagingService.sendMessage({
+        sender_id: userId,
+        receiver_id: seekerId,
+        content: newMessage,
+        application_id: selectedApp.application_id,
       });
 
-      const data = await response.json();
       if (data.success) {
         setMessages([...messages, {
-          sender_id: employer.user_id,
+          sender_id: userId,
           receiver_id: seekerId,
           content: newMessage,
           created_at: new Date().toISOString()
@@ -117,14 +114,8 @@ export default function EmployerApplicationsManager() {
     }
   };
 
-  const getStatusBadge = (status) => {
-    const badges = {
-      pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Chờ xử lý' },
-      approved: { bg: 'bg-green-100', text: 'text-green-800', label: 'Đã chấp nhận' },
-      rejected: { bg: 'bg-red-100', text: 'text-red-800', label: 'Đã từ chối' },
-      responded: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Đã phản hồi' }
-    };
-    const badge = badges[status] || badges.pending;
+  const getStatusBadge = (status: string) => {
+    const badge = getStatusBadgeConfig(status);
     return (
       <span className={`px-3 py-1 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}>
         {badge.label}
@@ -199,7 +190,7 @@ export default function EmployerApplicationsManager() {
               <div className="flex gap-2 flex-wrap">
                 {app.cv_path && (
                   <a
-                    href={`http://localhost/DuAnWebTuyenDung${app.cv_path}`}
+                    href={`${API_BASE_URL}${app.cv_path}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
@@ -269,10 +260,10 @@ export default function EmployerApplicationsManager() {
                 messages.map((msg, idx) => (
                   <div
                     key={idx}
-                    className={`flex ${msg.sender_id === employer.user_id ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${msg.sender_id === userId ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-xs px-4 py-2 rounded-lg ${msg.sender_id === employer.user_id
+                      className={`max-w-xs px-4 py-2 rounded-lg ${msg.sender_id === userId
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-200 text-gray-800'
                         }`}

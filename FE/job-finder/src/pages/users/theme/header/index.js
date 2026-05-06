@@ -1,46 +1,38 @@
 import { memo, useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiBell, FiMessageCircle, FiUser, FiMapPin, FiLogOut } from "react-icons/fi";
+import { FiBell, FiMessageCircle, FiUser, FiLogOut } from "react-icons/fi";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { IoIosSearch, IoIosList } from "react-icons/io";
+import { useAuth } from "../../../../context/AuthContext";
+import { ROUTES } from "../../../../utils/router";
 import JoblistDropdown from "./JoblistDropdown";
 import logo from "../../../../assets/imgs/logo/topcv-logo-6.png";
 import "./style.scss";
 
 const Header = () => {
     const [openMenu, setOpenMenu] = useState(false);
-    const [showLocation, setShowLocation] = useState(false);
     const [showCategory, setShowCategory] = useState(false);
-
-    const [currentUser, setCurrentUser] = useState(null);
     const [showUserMenu, setShowUserMenu] = useState(false);
 
+    const { user: currentUser, isAuthenticated, logout } = useAuth();
     const dropdownRef = useRef(null);
+    const userMenuRef = useRef(null);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const userStored = localStorage.getItem("user");
-        const token = localStorage.getItem("token");
-
-        if (userStored && token) {
-            setCurrentUser(JSON.parse(userStored));
-        }
-    }, []);
-
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setCurrentUser(null);
+        logout();
         setShowUserMenu(false);
-        navigate("/login");
-        window.location.reload();
+        navigate(ROUTES.USER.LOGIN);
     };
 
+    // Đóng dropdown khi click ra ngoài
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setShowCategory(false);
-                setShowLocation(false);
+            }
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+                setShowUserMenu(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -51,7 +43,7 @@ const Header = () => {
         <header className="header-container">
             <div className="header-top">
                 <div className="header-left">
-                    <Link to="/">
+                    <Link to={ROUTES.USER.HOME}>
                         <img src={logo} alt="TopCV Logo" className="logo" />
                     </Link>
                 </div>
@@ -62,18 +54,11 @@ const Header = () => {
                             Việc làm <BsChevronDown className="icon-down" /> <BsChevronUp className="icon-up" />
                         </div>
                         <div className="dropdown-menu">
-                            <a href="#" className="dropdown-item">Việc làm mới nhất</a>
-                            <Link to="/favorite-jobs" className="dropdown-item">Việc làm đã lưu</Link>
-                            {/* SỬA LỖI 2: Xóa onClick={handleClick} vì hàm này chưa được khai báo */}
-                            <a
-                                href="/applied-jobs"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="dropdown-item"
-                            >
-                                <i className="bi bi-send-check"></i>
+                            <Link to={ROUTES.USER.HOME} className="dropdown-item">Việc làm mới nhất</Link>
+                            <Link to={ROUTES.USER.FAVORITE_JOBS} className="dropdown-item">Việc làm đã lưu</Link>
+                            <Link to={ROUTES.USER.APPLIED_JOBS} className="dropdown-item">
                                 Việc làm đã ứng tuyển
-                            </a>
+                            </Link>
                         </div>
                     </div>
 
@@ -91,10 +76,10 @@ const Header = () => {
                     <button className="icon-btn"><FiMessageCircle size={20} /></button>
 
                     {/* --- LOGIC HIỂN THỊ USER --- */}
-                    {currentUser ? (
+                    {isAuthenticated && currentUser ? (
                         <>
                             {/* 1. Hiển thị Avatar & Menu User */}
-                            <div className="user-account" onClick={() => setShowUserMenu(!showUserMenu)}>
+                            <div className="user-account" ref={userMenuRef} onClick={() => setShowUserMenu(!showUserMenu)}>
                                 <div className="avatar-wrapper">
                                     {currentUser.avatar ? (
                                         <img src={currentUser.avatar} alt="Avt" className="user-avatar-tiny" />
@@ -134,7 +119,7 @@ const Header = () => {
                         </>
                     ) : (
                         /* TRƯỜNG HỢP 2: CHƯA ĐĂNG NHẬP */
-                        <Link to="/login" className="login-link">
+                        <Link to={ROUTES.USER.LOGIN} className="login-link">
                             <FiUser size={20} />
                             <span>Đăng nhập</span>
                         </Link>

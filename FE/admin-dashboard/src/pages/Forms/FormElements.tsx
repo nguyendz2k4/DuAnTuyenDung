@@ -1,20 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaBriefcase, FaMapMarkerAlt, FaMoneyBill, FaUsers, FaTimes } from "react-icons/fa";
 import { IoImage } from "react-icons/io5";
 import { MdBusinessCenter } from "react-icons/md";
-import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
+import jobService from "../../services/jobService";
+
+interface Category {
+  category_id: number;
+  name: string;
+  description: string;
+}
 
 export default function JobPostForm() {
-  const getUserId = () => {
-    const userId = localStorage.getItem("userId");
-    if (userId) {
-      return parseInt(userId);
-    }
-    return null;
-  };
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
-    user_id: getUserId(),
     title: "",
     requirements: "",
     location: "",
@@ -28,33 +28,27 @@ export default function JobPostForm() {
     promote_pro: false,
   });
 
-  const [images, setImages] = useState<string[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<Array<{ name: string; url: string }>>([]);
-  const [categories, setCategories] = useState<Array<{ category_id: number; name: string; description: string }>>([]);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<{ name: string; url: string } | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
-  useEffect(() => {
-    fetchCategories();
-    const currentUserId = getUserId();
-    console.log("🔍 User ID from localStorage:", currentUserId);
-  }, []);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
-      const response = await axios.get(
-        "http://localhost/DuAnWebTuyenDung/BE/admin/get-categories.php"
-      );
-
-      if (response.data.success) {
-        setCategories(response.data.data);
-      } else {
-        console.error("Lỗi lấy categories:", response.data.message);
+      const { data } = await jobService.getCategories();
+      if (data.success) {
+        setCategories(data.data);
       }
     } catch (error) {
       console.error("Lỗi kết nối API categories:", error);
     } finally {
       setLoadingCategories(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -69,56 +63,51 @@ export default function JobPostForm() {
     setFormData({ ...formData, [name]: e.target.value });
   };
 
-  // Xử lý chọn ảnh
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files) : [];
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    if (files.length === 0) return;
-
-    // Giới hạn tối đa 5 ảnh
-    if (images.length + files.length > 5) {
-      alert("⚠️ Chỉ được chọn tối đa 5 ảnh!");
+    if (!file.type.startsWith("image/")) {
+      alert(`⚠️ File ${file.name} không phải ảnh!`);
       return;
     }
 
-    files.forEach((file) => {
-      if (!file.type.startsWith("image/")) {
-        alert(`⚠️ File ${file.name} không phải ảnh!`);
-        return;
-      }
+    if (file.size > 5 * 1024 * 1024) {
+      alert(`⚠️ File ${file.name} quá lớn! (Tối đa 5MB)`);
+      return;
+    }
 
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`⚠️ File ${file.name} quá lớn! (Tối đa 5MB)`);
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-
-        setImages((prev) => [...prev, base64String]);
-        setImagePreviews((prev) => [...prev, { name: file.name, url: base64String }]);
-      };
-
-      reader.onerror = () => {
-        alert(`⚠️ Lỗi đọc file ${file.name}`);
-      };
-
-      reader.readAsDataURL(file);
-    });
+    setImageFile(file);
+    setImagePreview({ name: file.name, url: URL.createObjectURL(file) });
     e.target.value = "";
   };
 
-  // Xóa ảnh
-  const removeImage = (index) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
-    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      requirements: "",
+      location: "",
+      salary_range: "",
+      quantity: "",
+      category_id: "",
+      education: "",
+      level: "",
+      work_form: "",
+      description: "",
+      promote_pro: false,
+    });
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.user_id) {
+    if (!user?.userId) {
       alert("⚠️ Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại!");
       return;
     }
@@ -129,60 +118,37 @@ export default function JobPostForm() {
     }
 
     try {
-      const payload = {
-        ...formData,
-        jobImage: images,
-      };
-
-      console.log("📤 Sending data:", payload);
-
-      const response = await axios.post(
-        "http://localhost/DuAnWebTuyenDung/BE/admin/job-post.php",
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("✅ Response:", response.data);
-
-      if (response.data.success) {
-        alert("🎉 Đăng bài thành công!");
-
-        // Reset form
-        setFormData({
-          user_id: getUserId(),
-          title: "",
-          requirements: "",
-          location: "",
-          salary_range: "",
-          quantity: "",
-          category_id: "",
-          education: "",
-          level: "",
-          work_form: "",
-          description: "",
-          promote_pro: false,
-        });
-        setImages([]);
-        setImagePreviews([]);
-      } else {
-        alert(`⚠️ Lỗi: ${response.data.message}`);
+      const payload = new FormData();
+      payload.append("employerId", user.userId);
+      payload.append("title", formData.title);
+      payload.append("requirements", formData.requirements);
+      payload.append("location", formData.location);
+      payload.append("salaryRange", formData.salary_range);
+      payload.append("quantity", formData.quantity);
+      payload.append("categoryId", formData.category_id);
+      payload.append("education", formData.education);
+      payload.append("level", formData.level);
+      payload.append("workForm", formData.work_form);
+      payload.append("description", formData.description);
+      payload.append("isFeatured", formData.promote_pro ? "true" : "false");
+      if (imageFile) {
+        payload.append("imageFile", imageFile);
       }
-    } catch (error: any) {
-      console.error("❌ Error:", error);
-      console.error("❌ Error Response:", error.response);
-      console.error("❌ Error Data:", error.response?.data);
 
-      if (error.response) {
-        const errorMsg = error.response.data?.message || JSON.stringify(error.response.data) || "Unknown error";
+      const { data } = await jobService.createJobPost(payload);
+
+      if (data.message) {
+        alert("🎉 Đăng bài thành công!");
+        resetForm();
+      }
+    } catch (error: unknown) {
+      console.error("❌ Error:", error);
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosErr = error as { response?: { data?: { message?: string; Message?: string } } };
+        const errorMsg = axiosErr.response?.data?.message || axiosErr.response?.data?.Message || "Lỗi không xác định";
         alert(`⚠️ Lỗi server: ${errorMsg}`);
-      } else if (error.request) {
-        alert("⚠️ Không kết nối được server!");
       } else {
-        alert(`⚠️ Lỗi: ${error.message}`);
+        alert("⚠️ Không kết nối được server!");
       }
     }
   };
@@ -221,7 +187,7 @@ export default function JobPostForm() {
               value={formData.requirements}
               placeholder="VD: Có kinh nghiệm 1 năm trở lên với ReactJS, biết TypeScript..."
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-              rows="3"
+              rows={3}
               onChange={handleChange}
             />
           </div>
@@ -244,7 +210,7 @@ export default function JobPostForm() {
           {/* Upload ảnh */}
           <div>
             <label className="block text-gray-600 mb-1 font-medium">
-              Ảnh đại diện công việc (tối đa 5 ảnh)
+              Ảnh đại diện công việc
             </label>
             <div className="relative">
               <IoImage className="absolute left-3 top-3 text-gray-400 z-10 pointer-events-none" />
@@ -252,35 +218,30 @@ export default function JobPostForm() {
                 type="file"
                 name="jobImage"
                 accept="image/*"
-                multiple
                 className="w-full border border-gray-300 rounded-lg pl-10 p-2 file:mr-4 file:py-1 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                 onChange={handleImageChange}
               />
             </div>
 
-            {/* Preview ảnh */}
-            {imagePreviews.length > 0 && (
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {imagePreviews.map((img, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={img.url}
-                      alt={img.name}
-                      className="w-full h-24 object-cover rounded-lg border-2 border-gray-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <FaTimes size={12} />
-                    </button>
-                    <p className="text-xs text-gray-500 mt-1 truncate">{img.name}</p>
-                  </div>
-                ))}
+            {imagePreview && (
+              <div className="mt-3 relative group inline-block">
+                <img
+                  src={imagePreview.url}
+                  alt={imagePreview.name}
+                  className="w-32 h-24 object-cover rounded-lg border-2 border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <FaTimes size={12} />
+                </button>
+                <p className="text-xs text-gray-500 mt-1 truncate">{imagePreview.name}</p>
               </div>
             )}
           </div>
+
           {/* Toggle TopCV Pro */}
           <label className="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 bg-white hover:border-blue-300 transition">
             <div>
@@ -307,7 +268,6 @@ export default function JobPostForm() {
                   }`}
               />
             </button>
-            <input type="hidden" name="promote_pro" value={formData.promote_pro ? "1" : "0"} />
           </label>
         </div>
 
@@ -421,7 +381,7 @@ export default function JobPostForm() {
             value={formData.description}
             placeholder="Nhập mô tả chi tiết công việc..."
             className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-            rows="5"
+            rows={5}
             onChange={handleChange}
           ></textarea>
         </div>
@@ -430,24 +390,7 @@ export default function JobPostForm() {
           <button
             type="button"
             className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-6 rounded-lg shadow transition"
-            onClick={() => {
-              setFormData({
-                user_id: getUserId(),
-                title: "",
-                requirements: "",
-                location: "",
-                salary_range: "",
-                quantity: "",
-                category_id: "",
-                education: "",
-                level: "",
-                work_form: "",
-                description: "",
-                promote_pro: false,
-              });
-              setImages([]);
-              setImagePreviews([]);
-            }}
+            onClick={resetForm}
           >
             🔄 Đặt lại
           </button>

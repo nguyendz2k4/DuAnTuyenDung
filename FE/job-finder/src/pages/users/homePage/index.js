@@ -1,19 +1,24 @@
-import { memo, useState, useRef, useEffect } from "react";
+import { memo, useState, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { IoIosArrowDropleft, IoIosArrowDropright } from "react-icons/io";
 import { IoFilterSharp } from "react-icons/io5";
 import { FaRegHeart, FaHeart, FaChevronDown, FaCheck } from "react-icons/fa";
 
 import logo_title from "../../../assets/imgs/logo/label-toppy-ai.png";
-import logo_default from "../../../assets/imgs/logo_cty/conca.jpg"; // Logo mặc định
 import "./style.scss";
 import Pagination from "../../../components/common/Pagination";
 import Slider from "../../../components/common/Slider";
 import { useFavorite } from "../../../context/FavoriteContext";
-
-// CẤU HÌNH API URL CHUNG (Dễ sửa đổi sau này)
-const API_BASE_URL = "http://192.168.1.4:7099"; 
+import jobService from "../../../services/jobService";
+import { getImageUrl, logo_default } from "../../../utils/imageUtils";
+import {
+  FILTER_TYPES,
+  LOCATIONS,
+  SALARY_OPTIONS,
+  EXP_OPTIONS,
+  EDUCATION_VALUES,
+  DEFAULT_PAGE_SIZE,
+} from "../../../utils/constants";
 
 const HomePage = () => {
   const { toggleFavorite, isFavorite } = useFavorite();
@@ -31,7 +36,7 @@ const HomePage = () => {
   // Data State
   const [jobs, setJobs] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [companies, setCompanies] = useState([]); // Đổi sang lấy từ .NET
+  const [companies, setCompanies] = useState([]);
   
   // Loading & Pagination State
   const [loading, setLoading] = useState(false);
@@ -42,50 +47,20 @@ const HomePage = () => {
   
   const scrollRef = useRef();
 
-  // --- CONSTANTS ---
-  const locations = ["Ngẫu nhiên", "Hà Nội", "Thành phố Hồ Chí Minh", "Miền Bắc", "Miền Nam"];
-  const salaryOptions = ["Tất cả", "10-15 triệu", "15-20 triệu", "20-25 triệu", "25-40 triệu", "Trên 40 triệu", "Thỏa thuận"];
-  const expOptions = ["Tất cả", "Chưa có kinh nghiệm", "1 năm trở xuống", "1 năm trở lên", "Đại học", "Cao đẳng"];
-  const filterOptions = ["Địa điểm", "Mức lương", "Kinh nghiệm", "Ngành nghề"];
-
-  // --- HELPER: Xử lý ảnh từ .NET ---
-  // Giả sử .NET lưu ảnh tên file, cần nối với đường dẫn tĩnh (Static Files)
-  const getImageUrl = (imgName) => {
-    if (!imgName) return logo_default;
-    if (imgName.startsWith("http")) return imgName;
-    return `${API_BASE_URL}/images/companies/${imgName}`; // Cần cấu hình Static File ở .NET
-  };
-
   // --- API CALLS ---
 
-  // 1. Lấy danh mục (Categories) từ .NET
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setLoadingCats(true);
-      try {
-        // API giả định: GET /api/categories
-        const res = await axios.get(`${API_BASE_URL}/api/categories`);
-        if (res.data?.success) setCategories(res.data.data || []);
-      } catch (err) {
-        console.error("Lỗi tải danh mục:", err);
-      } finally {
-        setLoadingCats(false);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  // 2. Lấy danh sách công ty nổi bật (Companies) từ .NET
+  // Lấy danh sách công ty nổi bật
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/api/Company`);
-        if (res.data && Array.isArray(res.data)) {
-          const mappedCompanies = res.data.map(company => ({
+        const data = await jobService.getCompanies();
+        if (data && Array.isArray(data)) {
+          const mappedCompanies = data.map(company => ({
             id: company.employerId,
             name: company.companyName,
-            logo: company.logo,
+            logo: company.companyLogo,
             jobCount: company.jobCount,
+            industry: company.industry,
           }));
           setCompanies(mappedCompanies);
         }
@@ -96,43 +71,41 @@ const HomePage = () => {
     fetchCompanies();
   }, []);
 
-  // 3. Lấy danh sách việc làm (Jobs)
-  const fetchJobs = async () => {
+  // Lấy danh sách việc làm
+  const fetchJobs = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // Logic tìm Category ID
       const categoryId = filterType === "Ngành nghề" && selectedCategory !== "Tất cả"
           ? categories.find((c) => c.name === selectedCategory)?.id
           : "";
 
       const params = {
         page,
-        limit: 12,
+        limit: DEFAULT_PAGE_SIZE,
         location: filterType === "Địa điểm" && selectedLoc !== "Ngẫu nhiên" ? selectedLoc : "",
         salary: filterType === "Mức lương" && selectedSalary !== "Tất cả" ? selectedSalary : "",
-        experience: filterType === "Kinh nghiệm" && !["Đại học", "Cao đẳng"].includes(selectedExp) && selectedExp !== "Tất cả" ? selectedExp : "",
-        education: filterType === "Kinh nghiệm" && ["Đại học", "Cao đẳng"].includes(selectedExp) ? selectedExp : "",
+        experience: filterType === "Kinh nghiệm" && !EDUCATION_VALUES.includes(selectedExp) && selectedExp !== "Tất cả" ? selectedExp : "",
+        education: filterType === "Kinh nghiệm" && EDUCATION_VALUES.includes(selectedExp) ? selectedExp : "",
         category_id: categoryId || "",
       };
 
-      const res = await axios.get(`${API_BASE_URL}/api/jobs`, { params });
+      const res = await jobService.getJobs(params);
 
-      if (res.data?.success) {
-        // Mapping nhẹ nhàng hơn, giữ nguyên các trường quan trọng
-        const mappedJobs = res.data.data.map(job => ({
-          ...job, // Giữ lại hết các trường gốc để dùng nếu cần
+      if (res?.success) {
+        const mappedJobs = res.data.map(job => ({
+          ...job,
           id: job.jobId,
-          logo: job.companyLogo, // Map lại tên cho khớp UI cũ
+          logo: job.companyLogo,
           company: job.companyName,
           salary: job.salaryRange,
-          isPro: job.isPro // Giả sử bên .NET trả về boolean
+          isPro: job.isPro,
         }));
 
         setJobs(mappedJobs);
-        setTotalPages(res.data.pagination?.total_pages || 1);
+        setTotalPages(res.pagination?.totalPages || 1);
       } else {
-        setJobs([]); // Clear jobs nếu không success
+        setJobs([]);
       }
     } catch (err) {
       console.error("Lỗi tải jobs:", err);
@@ -140,12 +113,12 @@ const HomePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, filterType, selectedLoc, selectedSalary, selectedExp, selectedCategory, categories]);
 
   // Trigger fetchJobs khi filter thay đổi
   useEffect(() => {
     fetchJobs();
-  }, [page, filterType, selectedLoc, selectedSalary, selectedExp, selectedCategory]);
+  }, [fetchJobs]);
 
   // --- HANDLERS ---
   const scrollList = (direction) => {
@@ -158,9 +131,7 @@ const HomePage = () => {
     setFilterType(type);
     setOpenDropdown(false);
     setPage(1);
-    // Reset các filter khác về mặc định khi chuyển tab lọc để tránh conflict logic
     if (type === "Địa điểm") setSelectedLoc("Ngẫu nhiên");
-    // ... (Tùy logic nghiệp vụ bạn muốn reset hay giữ lại)
   };
 
   // --- RENDER ---
@@ -192,7 +163,7 @@ const HomePage = () => {
             </button>
             {openDropdown && (
               <div className="dropdown-menu">
-                {filterOptions.map((opt) => (
+                {FILTER_TYPES.map((opt) => (
                   <div key={opt} className={`dropdown-item ${filterType === opt ? "active" : ""}`} 
                        onClick={() => resetFilters(opt)}>
                     <span>{opt}</span>
@@ -208,17 +179,17 @@ const HomePage = () => {
         <div className="filter-tags">
           <IoIosArrowDropleft className="icon-left" size={32} color="#00b14f" />
           
-          {filterType === "Địa điểm" && locations.map(loc => (
+          {filterType === "Địa điểm" && LOCATIONS.map(loc => (
             <button key={loc} className={`tag-btn ${selectedLoc === loc ? "active" : ""}`}
                     onClick={() => { setSelectedLoc(loc); setPage(1); }}>{loc}</button>
           ))}
           
-          {filterType === "Mức lương" && salaryOptions.map(s => (
+          {filterType === "Mức lương" && SALARY_OPTIONS.map(s => (
             <button key={s} className={`tag-btn ${selectedSalary === s ? "active" : ""}`}
                     onClick={() => { setSelectedSalary(s); setPage(1); }}>{s}</button>
           ))}
 
-          {filterType === "Kinh nghiệm" && expOptions.map(e => (
+          {filterType === "Kinh nghiệm" && EXP_OPTIONS.map(e => (
             <button key={e} className={`tag-btn ${selectedExp === e ? "active" : ""}`}
                     onClick={() => { setSelectedExp(e); setPage(1); }}>{e}</button>
           ))}
@@ -247,13 +218,13 @@ const HomePage = () => {
         <div className="error-container" style={{color: 'red'}}>{error}</div>
       ) : (
         <div className="job-list">
-          {jobs.length > 0 ? jobs.map((job, index) => { // <--- 1. THÊM index VÀO ĐÂY
+          {jobs.length > 0 ? jobs.map((job, index) => {
              const isLiked = isFavorite(job.id);
              return (
               <div 
                 key={job.id} 
                 className={`job-card ${job.isPro ? "card-pro" : ""}`}
-                style={{ animationDelay: `${index * 0.1}s` }} // <--- 2. ĐẶT STYLE VÀO ĐÂY (Bỏ comment đi)
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="job-logo">
                   <img src={getImageUrl(job.logo)} alt={job.company} onError={(e) => e.target.src = logo_default} />
@@ -282,7 +253,7 @@ const HomePage = () => {
 
       <Slider />
 
-      {/* COMPANY LIST SECTION (Footer area) */}
+      {/* COMPANY LIST SECTION */}
       <div className="section-divider">
         {/* --- PHẦN 1: DANH MỤC NGÀNH NGHỀ (CÓ NÚT SCROLL) --- */}
         <div className="company-list">
@@ -311,7 +282,6 @@ const HomePage = () => {
                   title={cat.description}
                 >
                   {cat.name}
-                  {/* Kiểm tra nếu có job_count thì mới hiện */}
                   {(cat.job_count > 0 || cat.jobCount > 0) && (
                     <span className="job-count-badge">
                       ({cat.job_count || cat.jobCount})
@@ -343,7 +313,6 @@ const HomePage = () => {
                 {/* Cột trái: Logo */}
                 <div className="left">
                   <div className="logo-wrap">
-                    {/* Sử dụng hàm getImageUrl để load ảnh từ .NET */}
                     <img 
                       src={getImageUrl(company.logo)} 
                       alt={company.name} 
@@ -355,7 +324,6 @@ const HomePage = () => {
                 {/* Cột giữa: Thông tin */}
                 <div className="center">
                   <h3 id={`company-${company.id}`} className="company-title">
-                    {/* Dùng Link thay vì a href để không load lại trang */}
                     <Link to={`/company/${company.id}`} aria-label={`Xem chi tiết ${company.name}`}>
                       {company.name}
                     </Link>
@@ -365,9 +333,8 @@ const HomePage = () => {
                   <div className="meta-row">
                     <div className="meta-left">
                       <span className="icon-briefcase" aria-hidden="true">🧳</span>
-                      {/* Lưu ý: Backend .NET cần trả về trường jobCount hoặc jobs */}
                       <span className="jobs-count">
-                        {company.jobCount || company.jobs || 0} việc làm
+                        {company.jobCount || 0} việc làm
                       </span>
                     </div>
                   </div>

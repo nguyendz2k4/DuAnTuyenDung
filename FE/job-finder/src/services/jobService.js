@@ -1,23 +1,56 @@
 import api from './api';
 
 const jobService = {
-  getJobs: async (params) => {
-    try {
-      const response = await api.get('/jobs', { params });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+  /**
+   * Lấy danh sách việc làm với bộ lọc
+   * @param {object} params - { page, limit, location, salary, experience, education, category_id, search }
+   * @returns {Promise}
+   */
+  getJobs: (params) => {
+    return api.get('/jobs', { params });
   },
-  getJobDetail: async (id) => {
-    try {
-      const response = await api.get(`/DetailJobs/${id}`);
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  }
-  // Thêm các hàm API khác liên quan đến Jobs ở đây
+
+  /**
+   * Lấy chi tiết 1 việc làm
+   * @param {string|number} id - Job ID
+   * @returns {Promise}
+   */
+  getJobDetail: (id) => {
+    return api.get(`/DetailJobs/${id}`);
+  },
+
+  /**
+   * Lấy danh sách công ty
+   * @returns {Promise}
+   */
+  getCompanies: () => {
+    return api.get('/Company');
+  },
+
+  /**
+   * Lấy danh sách ngành nghề
+   * @returns {Promise}
+   */
+  getCategories: () => {
+    return api.get('/categories');
+  },
+
+  /**
+   * Lấy danh sách gói TopCV Pro
+   * @returns {Promise}
+   */
+  getPackages: () => {
+    return api.get('/packages');
+  },
+
+  /**
+   * Đăng ký gói TopCV Pro
+   * @param {object} data - { userId, packageId, paymentMethod, amount }
+   * @returns {Promise}
+   */
+  registerPackage: (data) => {
+    return api.post('/packages/register', data);
+  },
 };
 
 export default jobService;

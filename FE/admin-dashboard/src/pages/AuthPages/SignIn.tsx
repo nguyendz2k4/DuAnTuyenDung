@@ -1,6 +1,8 @@
 import { useState, FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import PageMeta from "../../components/common/PageMeta";
+import { useAuth } from "../../context/AuthContext";
+import authService from "../../services/authService";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -9,6 +11,7 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,32 +19,29 @@ export default function SignIn() {
     setLoading(true);
 
     try {
-      const res = await fetch("https://localhost:7099/api/auth/admin-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userName: email, password }),
+      const { data } = await authService.adminLogin(email, password);
+
+      // Lưu session qua AuthContext (tự động sync localStorage)
+      login(data.token, {
+        userId: (data.user?.id || data.user?.userId || "").toString(),
+        fullName: data.user?.fullName ?? "",
+        email: data.user?.email ?? "",
+        role: data.user?.role ?? "",
+        avatar: data.user?.avatar,
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // Lưu token và các thông tin cơ bản
-        localStorage.setItem("token", data.token);
-
-        // MỚI THÊM: Lưu userId vào localStorage để trang Profile có thể sử dụng
-        // Chuyển sang chuỗi (toString) vì localStorage chỉ lưu dạng chuỗi
-        const userIdToSave = data.user?.userId || data.user?.id || "";
-        localStorage.setItem("userId", userIdToSave.toString());
-
-        localStorage.setItem("role", data.user?.role ?? "");
-        localStorage.setItem("email", data.user?.email ?? "");
-        localStorage.setItem("fullName", data.user?.fullName ?? "");
-        navigate("/");
+      navigate("/");
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "response" in err) {
+        const axiosErr = err as { response?: { data?: { Message?: string; message?: string } } };
+        setError(
+          axiosErr.response?.data?.Message ||
+          axiosErr.response?.data?.message ||
+          "Đăng nhập thất bại. Vui lòng kiểm tra lại."
+        );
       } else {
-        setError(data.Message || data.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại.");
+        setError("Không thể kết nối đến server. Vui lòng kiểm tra Backend đã chạy chưa.");
       }
-    } catch {
-      setError("Không thể kết nối đến server. Vui lòng kiểm tra Backend đã chạy chưa.");
     } finally {
       setLoading(false);
     }
@@ -402,7 +402,6 @@ export default function SignIn() {
       `}</style>
 
       <div className="signin-root">
-        {/* ... (Phần hiển thị giao diện giữ nguyên) ... */}
         {/* LEFT */}
         <div className="signin-left">
           <div className="signin-card">

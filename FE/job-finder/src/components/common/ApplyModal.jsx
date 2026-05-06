@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from "react";
-import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
+import applicationService from "../../services/applicationService";
 import "./ApplyModal.scss";
 
 export default function ApplyModal({ open, onClose, job }) {
+    const { user } = useAuth();
     const [file, setFile] = useState(null);
     const [formData, setFormData] = useState({
         full_name: "",
@@ -23,7 +25,6 @@ export default function ApplyModal({ open, onClose, job }) {
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
         if (selectedFile) {
-            console.log("Đã chọn file:", selectedFile.name);
             setFile(selectedFile);
         }
     };
@@ -42,7 +43,7 @@ export default function ApplyModal({ open, onClose, job }) {
         setIsSubmitting(true);
         try {
             const data = new FormData();
-            data.append('job_id', job.job_id || job.id);
+            data.append('job_id', job.job_id || job.id || job.jobId);
             data.append('full_name', formData.full_name);
             data.append('email', formData.email);
             data.append('phone', formData.phone);
@@ -50,23 +51,14 @@ export default function ApplyModal({ open, onClose, job }) {
             data.append('cover_letter', formData.cover_letter);
             data.append('cv_file', file);
 
-            // Sửa logic gửi user_id
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (user && user.user_id) {
-                data.append('user_id', user.user_id);
-                console.log("Đang gửi user_id:", user.user_id);
-            } else {
-                console.log("Không có user_id - Guest application");
+            // Lấy user_id từ AuthContext
+            if (user?.id || user?.user_id) {
+                data.append('user_id', user.id || user.user_id);
             }
 
-            const response = await axios.post(
-                "http://localhost/DuAnWebTuyenDung/BE/admin/apply-job.php",
-                data,
-                { headers: { "Content-Type": "multipart/form-data" } }
-            );
+            const response = await applicationService.applyJob(data);
 
-            if (response.data.success) {
-                console.log("Response data:", response.data);
+            if (response.success) {
                 alert("Chúc mừng! Bạn đã nộp hồ sơ thành công.");
                 onClose();
                 setFile(null);
@@ -78,7 +70,7 @@ export default function ApplyModal({ open, onClose, job }) {
                     cover_letter: ""
                 });
             } else {
-                alert("Lỗi: " + response.data.message);
+                alert("Lỗi: " + (response.message || "Có lỗi xảy ra"));
             }
 
         } catch (error) {

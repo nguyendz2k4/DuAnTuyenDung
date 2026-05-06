@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FaCrown, FaCheck, FaTimes, FaCheckCircle } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
+import packageService from '../../services/packageService';
 
 export default function TopCVProRegister() {
     const [packages, setPackages] = useState([]);
@@ -10,21 +12,14 @@ export default function TopCVProRegister() {
     const [paymentMethod, setPaymentMethod] = useState('momo');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-    const [userId] = useState(localStorage.getItem('userId') || '');
-    const [userEmail] = useState(localStorage.getItem('email') || '');
-    const [userName] = useState(localStorage.getItem('user') || 'Người dùng');
+    const { user } = useAuth();
+    const userId = user?.userId || '';
+    const userEmail = user?.email || '';
+    const userName = user?.fullName || 'Người dùng';
 
-    useEffect(() => {
-        fetchPackages();
-    }, []);
-
-    const fetchPackages = async () => {
+    const fetchPackages = useCallback(async () => {
         try {
-            const response = await fetch(
-                'http://localhost/DuAnWebTuyenDung/BE/admin/get-packages.php'
-            );
-
-            const data = await response.json();
+            const { data } = await packageService.getPackages();
 
             if (data.success) {
                 setPackages(data.data);
@@ -34,9 +29,13 @@ export default function TopCVProRegister() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const handleSelectPackage = (pkg) => {
+    useEffect(() => {
+        fetchPackages();
+    }, [fetchPackages]);
+
+    const handleSelectPackage = (pkg: { package_id: number; price: string; name: string; duration_days: number; features: string }) => {
         setSelectedPackage(pkg);
         setShowPaymentModal(true);
     };
@@ -50,23 +49,12 @@ export default function TopCVProRegister() {
         setIsProcessing(true);
 
         try {
-            const response = await fetch(
-                'http://localhost/DuAnWebTuyenDung/BE/admin/register-package.php',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        user_id: parseInt(userId),
-                        package_id: selectedPackage.package_id,
-                        payment_method: paymentMethod,
-                        amount: selectedPackage.price
-                    })
-                }
-            );
-
-            const data = await response.json();
+            const { data } = await packageService.registerPackage({
+                user_id: parseInt(userId),
+                package_id: selectedPackage.package_id,
+                payment_method: paymentMethod,
+                amount: selectedPackage.price,
+            });
 
             if (data.success) {
                 setShowPaymentModal(false);

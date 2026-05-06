@@ -1,14 +1,88 @@
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { useAuth } from "../../../context/AuthContext";
+import jobService from "../../../services/jobService";
+import { resolveImageUrl } from "../../../utils/imageUtils";
+import { formatDate, parseText } from "../../../utils/formatters";
+import { ROUTES } from "../../../utils/router";
 import ApplyModal from "../../../components/common/ApplyModal";
 import "./detailJob.scss";
+
+/**
+ * Chuyển đổi dữ liệu API thành format hiển thị
+ * Tách riêng ra khỏi component để dễ test và maintain
+ */
+const transformJobData = (apiJob) => {
+    // 1. Xử lý ngày tháng
+    const createdDate = apiJob.createdAt ? new Date(apiJob.createdAt) : new Date();
+    const deadlineDate = new Date(createdDate);
+    deadlineDate.setDate(createdDate.getDate() + 30);
+
+    // 2. Xử lý danh sách ảnh
+    let rawImages = [];
+    if (apiJob.images) {
+        rawImages = apiJob.images.includes(',')
+            ? apiJob.images.split(',')
+            : [apiJob.images];
+    }
+    const fullImages = rawImages.map(img => resolveImageUrl(img));
+
+    // 3. Xử lý Logo
+    const fullLogo = resolveImageUrl(apiJob.logo || apiJob.images);
+
+    // 4. Tạo object hoàn chỉnh
+    return {
+        ...apiJob,
+        title: apiJob.title,
+        salary: apiJob.salaryRange || "Thỏa thuận",
+        location: apiJob.location || "Toàn quốc",
+
+        // Company Info
+        company: apiJob.companyName || "Công ty ẩn danh",
+        logo: fullLogo,
+        companySize: apiJob.companySize || "Chưa cập nhật",
+        industry: apiJob.nameIndustry || "Đa ngành",
+        address: apiJob.address || apiJob.location,
+        companyWebsite: apiJob.companyWebsite || "#",
+
+        // Time
+        deadline: formatDate(deadlineDate),
+        createdAt: formatDate(createdDate),
+
+        // Stats
+        experience: apiJob.level || "Không yêu cầu",
+        level: apiJob.level || "Nhân viên",
+        education: apiJob.education || "Không yêu cầu",
+        quantity: apiJob.quantity ? `${apiJob.quantity} người` : "Đang tuyển",
+        viewCount: apiJob.viewCount || 0,
+
+        // Lists
+        descriptionList: parseText(apiJob.description),
+        requirementsList: parseText(apiJob.requirements),
+        benefitsList: [
+            "Môi trường làm việc chuyên nghiệp",
+            "Được đào tạo nâng cao nghiệp vụ",
+            "Chế độ bảo hiểm đầy đủ theo quy định"
+        ],
+        expertiseList: parseText(apiJob.requirements).slice(0, 4),
+
+        // Tags
+        tags: [
+            apiJob.categoryName,
+            apiJob.jobType,
+            apiJob.level
+        ].filter(Boolean),
+
+        // Gallery Images
+        images: fullImages,
+    };
+};
 
 const DetailJob = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { state } = useLocation(); // Dùng nếu muốn lấy state từ trang trước
-    
+    const { isAuthenticated } = useAuth();
+
     // State UI
     const [selectedImage, setSelectedImage] = useState(null);
     const [openApply, setOpenApply] = useState(false);
@@ -18,31 +92,6 @@ const DetailJob = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const API_BASE_URL = "http://192.168.1.4:7099"; 
-
-    const resolveUrl = (path) => {
-        if (!path) return "https://via.placeholder.com/150?text=No+Image";
-        const cleanPath = String(path).trim();
-        if (cleanPath.startsWith("http")) return cleanPath;
-        return `${API_BASE_URL}/${cleanPath.replace(/^\//, '')}`;
-    };
-
-    const parseText = (text) => {
-        if (!text) return [];
-        const safeText = String(text);
-        // Tách theo dòng mới hoặc dấu chấm
-        let items = safeText.split('\n').map(t => t.trim()).filter(t => t.length > 0);
-        if (items.length <= 1) items = safeText.split('.').map(t => t.trim()).filter(t => t.length > 0);
-        return items.length > 0 ? items : [safeText];
-    };
-
-    const formatDate = (dateInput) => {
-        if (!dateInput) return "N/A";
-        return new Date(dateInput).toLocaleDateString("vi-VN", {
-            day: "2-digit", month: "2-digit", year: "numeric"
-        });
-    };
-
     useEffect(() => {
         const fetchJobDetail = async () => {
             if (!id) return;
@@ -51,91 +100,15 @@ const DetailJob = () => {
                 setLoading(true);
                 setError(null);
                 
-                // Gọi API
-                const response = await axios.get(`${API_BASE_URL}/api/DetailJobs/${id}`);
-                const apiJob = response.data;
+                const apiJob = await jobService.getJobDetail(id);
 
                 if (apiJob) {
-                    console.log("✅ Data Loaded:", apiJob);
-
-                    // --- XỬ LÝ DỮ LIỆU (DATA TRANSFORMATION) ---
-                    // Làm sạch dữ liệu ở đây để tránh tính toán lại trong JSX gây nháy
-                    
-                    // 1. Xử lý ngày tháng
-                    const createdDate = apiJob.createdAt ? new Date(apiJob.createdAt) : new Date();
-                    const deadlineDate = new Date(createdDate);
-                    deadlineDate.setDate(createdDate.getDate() + 30);
-
-                    // 2. Xử lý danh sách ảnh
-                    let rawImages = [];
-                    if (apiJob.images) {
-                        rawImages = apiJob.images.includes(',') 
-                            ? apiJob.images.split(',') 
-                            : [apiJob.images];
-                    }
-                    // Map sang URL đầy đủ
-                    const fullImages = rawImages.map(img => resolveUrl(img));
-
-                    // 3. Xử lý Logo
-                    const fullLogo = resolveUrl(apiJob.logo || apiJob.images);
-
-                    // 4. Tạo object hoàn chỉnh
-                    const finalJob = {
-                        ...apiJob, // Giữ lại các trường gốc nếu cần
-                        
-                        // Override các trường hiển thị
-                        title: apiJob.title,
-                        salary: apiJob.salaryRange || "Thỏa thuận",
-                        location: apiJob.location || "Toàn quốc",
-                        
-                        // Company Info
-                        company: apiJob.companyName || "Công ty ẩn danh",
-                        logo: fullLogo,
-                        companySize: apiJob.companySize || "Chưa cập nhật",
-                        industry: apiJob.nameIndustry || "Đa ngành",
-                        address: apiJob.address || apiJob.location,
-                        companyWebsite: apiJob.companyWebsite || "#",
-                        
-                        // Time
-                        deadline: formatDate(deadlineDate),
-                        createdAt: formatDate(createdDate),
-
-                        // Stats
-                        experience: apiJob.level || "Không yêu cầu",
-                        level: apiJob.level || "Nhân viên",
-                        education: apiJob.education || "Không yêu cầu",
-                        quantity: apiJob.quantity ? `${apiJob.quantity} người` : "Đang tuyển",
-                        viewCount: apiJob.viewCount || 0,
-
-                        // Lists (Parse ngay tại đây)
-                        descriptionList: parseText(apiJob.description),
-                        requirementsList: parseText(apiJob.requirements),
-                        // Giả định benefits vì backend chưa có
-                        benefitsList: [
-                            "Môi trường làm việc chuyên nghiệp",
-                            "Được đào tạo nâng cao nghiệp vụ",
-                            "Chế độ bảo hiểm đầy đủ theo quy định"
-                        ],
-                        // Expertise (tạm lấy từ requirements)
-                        expertiseList: parseText(apiJob.requirements).slice(0, 4),
-                        
-                        // Tags
-                        tags: [
-                            apiJob.categoryName,
-                            apiJob.jobType,
-                            apiJob.level
-                        ].filter(Boolean),
-
-                        // Gallery Images
-                        images: fullImages
-                    };
-
-                    setJob(finalJob);
+                    setJob(transformJobData(apiJob));
                 } else {
                     setError("Không tìm thấy dữ liệu công việc.");
                 }
             } catch (err) {
-                console.error("❌ Error:", err);
+                console.error("Lỗi tải chi tiết job:", err);
                 setError("Có lỗi xảy ra khi tải dữ liệu.");
             } finally {
                 setLoading(false);
@@ -143,13 +116,12 @@ const DetailJob = () => {
         };
 
         fetchJobDetail();
-    }, [id]); // Chỉ chạy lại khi ID thay đổi
+    }, [id]);
 
-    // Các hàm xử lý sự kiện
+    // Kiểm tra auth trước khi mở form ứng tuyển
     const handleApplyClick = () => {
-        const token = localStorage.getItem("token"); 
-        if (!token) {
-            navigate("/login", { state: { redirectTo: `/job/${id}` } });
+        if (!isAuthenticated) {
+            navigate(ROUTES.USER.LOGIN, { state: { redirectTo: `/job/${id}` } });
             return;
         }
         setOpenApply(true);
@@ -175,7 +147,7 @@ const DetailJob = () => {
         );
     }
 
-    // Render Main Content (Giữ nguyên cấu trúc HTML/Class cũ)
+    // Render Main Content
     return (
         <div className="detail-job">
             {/* ===== HEADER ===== */}
@@ -221,12 +193,10 @@ const DetailJob = () => {
 
                 <div className="header-right">
                     <div className="company-card">
-                        {/* Ảnh Logo đã được xử lý URL, thêm onError fallback */}
                         <img 
                             src={job.logo} 
                             alt={job.company} 
                             className="company-logo"
-                            key={job.logo} 
                             onError={(e) => e.target.style.display = 'none'} 
                         />
                         <h3 className="company-name">{job.company}</h3>
@@ -313,7 +283,7 @@ const DetailJob = () => {
                                             <img
                                                 src={image}
                                                 alt={`Ảnh ${index + 1}`}
-                                                onError={(e) => e.target.style.display = 'none'} // Ẩn ngay nếu lỗi
+                                                onError={(e) => e.target.style.display = 'none'}
                                             />
                                         </div>
                                     );
@@ -345,7 +315,7 @@ const DetailJob = () => {
                         <p>Ứng viên nộp hồ sơ trực tuyến bằng cách bấm <strong>Ứng tuyển ngay</strong> dưới đây.</p>
                         <button
                             className="btn-apply-sidebar"
-                            onClick={() => setOpenApply(true)}
+                            onClick={handleApplyClick}
                         >
                             Ứng tuyển ngay
                         </button>

@@ -1,171 +1,165 @@
-import { useEffect, useState } from "react";
-import { User, UserDetail } from "../../type/User";
-import { FaTrash, FaEye } from "react-icons/fa";
+import { useEffect, useState, useCallback } from 'react';
+import userService from '../../services/userService';
+import { API_BASE_URL } from '../../services/apiConfig';
+
+interface UserItem {
+  user_id: number;
+  full_name: string;
+  email: string;
+  account_type: string;
+  status: number;
+  avatar: string | null;
+  created_at: string;
+}
 
 export default function UserManagement() {
-    const [users, setUsers] = useState<User[]>([]);
-    const [filterRole, setFilterRole] = useState<string>("all");
-    const [search, setSearch] = useState("");
-    const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterRole, setFilterRole] = useState('all');
 
-    const fetchUsers = async () => {
-        const res = await fetch("http://localhost/DuAnWebTuyenDung/BE/admin/user-management.php");
-        const data = await res.json();
-        if (data.success) setUsers(data.data);
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data } = await userService.getUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error("Lỗi tải danh sách users:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  const handleDeleteUser = async (userId: number) => {
+    if (!window.confirm("Bạn có chắc muốn xóa tài khoản này?")) return;
+
+    try {
+      await userService.deleteUser(userId);
+      setUsers(users.filter(u => u.user_id !== userId));
+      alert("🗑️ Đã xóa tài khoản!");
+    } catch (error) {
+      console.error("Lỗi xóa user:", error);
+      alert("⚠️ Không thể xóa tài khoản!");
+    }
+  };
+
+  const filteredUsers = users.filter(user => {
+    const matchesSearch =
+      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesRole = filterRole === 'all' || user.account_type === filterRole;
+
+    return matchesSearch && matchesRole;
+  });
+
+  const getRoleBadge = (role: string) => {
+    const badges: Record<string, { bg: string; text: string; label: string }> = {
+      Admin: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Admin' },
+      Employer: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Nhà tuyển dụng' },
+      JobSeeker: { bg: 'bg-green-100', text: 'text-green-800', label: 'Ứng viên' },
     };
-
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    const handleViewDetail = async (userId: number) => {
-        const res = await fetch(
-            `http://localhost/DuAnWebTuyenDung/BE/admin/user-management.php?user_id=${userId}`
-        );
-        const data = await res.json();
-        if (data.success) {
-            setSelectedUser(data.data);
-        }
-    };
-
-    const handleDelete = async (userId: number) => {
-        if (!window.confirm("Bạn chắc chắn muốn xoá tài khoản?")) return;
-
-        const res = await fetch(
-            `http://localhost/DuAnWebTuyenDung/BE/admin/user-management.php`,
-            {
-                method: "DELETE",
-                body: JSON.stringify({ user_id: userId }),
-                headers: { "Content-Type": "application/json" },
-            }
-        );
-
-        const data = await res.json();
-        if (data.success) {
-            alert("Xoá thành công!");
-            fetchUsers();
-        } else {
-            alert(data.message);
-        }
-    };
-
-    const filteredUsers = users.filter((u) => {
-        const username = u.username ?? "";
-        const email = u.email ?? "";
-        const role = u.role ?? "";
-
-        const matchRole = filterRole === "all" || role === filterRole;
-        const matchSearch =
-            username.toLowerCase().includes(search.toLowerCase()) ||
-            email.toLowerCase().includes(search.toLowerCase());
-
-        return matchRole && matchSearch;
-    });
-
-
+    const badge = badges[role] || { bg: 'bg-gray-100', text: 'text-gray-800', label: role };
     return (
-        <div className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Quản lý tài khoản</h2>
-
-            {/* Bộ lọc + tìm kiếm */}
-            <div className="flex flex-wrap gap-4 mb-6">
-                <select
-                    className="border p-2 rounded"
-                    value={filterRole}
-                    onChange={(e) => setFilterRole(e.target.value)}
-                >
-                    <option value="all">Tất cả</option>
-                    <option value="job_seeker">Người tìm việc</option>
-                    <option value="employer">Nhà tuyển dụng</option>
-                    <option value="admin">Quản trị viên</option>
-                </select>
-
-                <input
-                    type="text"
-                    className="border p-2 rounded flex-1"
-                    placeholder="Tìm theo tên hoặc email..."
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-            </div>
-
-            {/* Bảng danh sách users */}
-            <div className="overflow-x-auto rounded-lg border">
-                <table className="w-full border-collapse">
-                    <thead className="bg-gray-200">
-                        <tr>
-                            <th className="p-3 text-left">Tên</th>
-                            <th className="p-3 text-left">Email</th>
-                            <th className="p-3 text-left">Vai trò</th>
-                            <th className="p-3 text-center">Hành động</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {filteredUsers.map((user: User) => (
-                            <tr key={user.user_id} className="border-b hover:bg-gray-50">
-                                <td className="p-3">
-                                    {user.username ?? "Chưa cập nhật"}
-                                </td>
-
-                                <td className="p-3">{user.email}</td>
-                                <td className="p-3 capitalize">
-                                    {user.role ? user.role.replace("_", " ") : "Chưa có role"}
-                                </td>
-
-
-                                <td className="p-3 flex justify-center gap-4">
-                                    <button
-                                        onClick={() => handleViewDetail(user.user_id)}
-                                        className="p-2 text-blue-600 hover:bg-blue-100 rounded-full"
-                                        title="Xem chi tiết"
-                                    >
-                                        <FaEye size={18} />
-                                    </button>
-
-                                    <button
-                                        onClick={() => handleDelete(user.user_id)}
-                                        className="p-2 text-red-600 hover:bg-red-100 rounded-full"
-                                        title="Xoá tài khoản"
-                                    >
-                                        <FaTrash size={18} />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Modal xem chi tiết */}
-            {selectedUser && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl w-full max-w-lg p-6 shadow-lg relative">
-                        <h3 className="text-xl font-semibold mb-4">Chi tiết tài khoản</h3>
-
-                        <p><strong>Tên:</strong> {selectedUser.full_name || selectedUser.username}</p>
-                        <p><strong>Email:</strong> {selectedUser.email}</p>
-                        <p><strong>Role:</strong> {selectedUser.role}</p>
-                        <p><strong>SĐT:</strong> {selectedUser.phone || "Không có"}</p>
-                        <p><strong>Địa chỉ:</strong> {selectedUser.address || "Không có"}</p>
-
-                        {selectedUser.company_name && (
-                            <>
-                                <hr className="my-3" />
-                                <p><strong>Công ty:</strong> {selectedUser.company_name}</p>
-                                <p><strong>Website:</strong> {selectedUser.company_website}</p>
-                                <p><strong>Địa chỉ công ty:</strong> {selectedUser.company_address}</p>
-                            </>
-                        )}
-
-                        <button
-                            className="mt-6 w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
-                            onClick={() => setSelectedUser(null)}
-                        >
-                            Đóng
-                        </button>
-                    </div>
-                </div>
-            )}
-        </div>
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}>
+        {badge.label}
+      </span>
     );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải danh sách người dùng...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+        <h2 className="text-2xl font-semibold text-gray-800">
+          👥 Quản lý người dùng ({filteredUsers.length})
+        </h2>
+
+        <div className="flex gap-3 flex-wrap">
+          <input
+            type="text"
+            placeholder="🔍 Tìm kiếm tên hoặc email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="border border-gray-300 rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-blue-500 outline-none transition"
+          />
+          <select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+            className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+          >
+            <option value="all">Tất cả</option>
+            <option value="Admin">Admin</option>
+            <option value="Employer">Nhà tuyển dụng</option>
+            <option value="JobSeeker">Ứng viên</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="text-left p-3 text-sm font-medium text-gray-600">User</th>
+              <th className="text-left p-3 text-sm font-medium text-gray-600">Email</th>
+              <th className="text-left p-3 text-sm font-medium text-gray-600">Vai trò</th>
+              <th className="text-left p-3 text-sm font-medium text-gray-600">Trạng thái</th>
+              <th className="text-right p-3 text-sm font-medium text-gray-600">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUsers.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="text-center py-12 text-gray-500">
+                  Không tìm thấy người dùng nào
+                </td>
+              </tr>
+            ) : (
+              filteredUsers.map((userItem) => (
+                <tr key={userItem.user_id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                  <td className="p-3 flex items-center gap-3">
+                    <img
+                      src={userItem.avatar ? `${API_BASE_URL}${userItem.avatar}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(userItem.full_name || 'User')}&background=random`}
+                      alt={userItem.full_name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <span className="font-medium text-gray-800">{userItem.full_name || 'N/A'}</span>
+                  </td>
+                  <td className="p-3 text-gray-600">{userItem.email}</td>
+                  <td className="p-3">{getRoleBadge(userItem.account_type)}</td>
+                  <td className="p-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${userItem.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {userItem.status === 1 ? 'Hoạt động' : 'Bị khóa'}
+                    </span>
+                  </td>
+                  <td className="p-3 text-right">
+                    <button
+                      onClick={() => handleDeleteUser(userItem.user_id)}
+                      className="text-red-500 hover:text-red-700 text-sm font-medium transition"
+                    >
+                      Xóa
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

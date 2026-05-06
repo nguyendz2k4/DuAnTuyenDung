@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 
@@ -19,15 +19,11 @@ export default function LineChartOne({ filter = "monthly" }: LineChartProps) {
   });
 
   // Fetch dữ liệu doanh thu từ API
-  useEffect(() => {
-    fetchRevenueData();
-  }, [filter]);
-
-  const fetchRevenueData = async () => {
+  const fetchRevenueData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost/DuAnWebTuyenDung/BE/chart/revenue.php?filter=${filter}&year=2025`
+        `https://localhost:7099/api/chart/revenue?filter=${filter}&year=2025`
       );
       const result = await response.json();
 
@@ -38,7 +34,11 @@ export default function LineChartOne({ filter = "monthly" }: LineChartProps) {
       console.error("Error fetching revenue data:", error);
     }
     setLoading(false);
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchRevenueData();
+  }, [fetchRevenueData]);
 
   const options: ApexOptions = {
     legend: {

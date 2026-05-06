@@ -1,4 +1,4 @@
-﻿using DoAnTotNghiep.Models;
+using DoAnTotNghiep.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://0.0.0.0:7099");
+//builder.WebHost.UseUrls("http://0.0.0.0:7099");
 builder.Services.AddHttpClient();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -65,14 +65,15 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp", policy =>
     {
         policy.WithOrigins(
-                "http://192.168.1.4:3000"   
+                "http://192.168.1.4:3000",
+                "http://localhost:3000",
+                "http://localhost:5173"
               )
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
-
 
 
 builder.Services.AddControllers();
@@ -87,7 +88,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 app.UseRouting();      
 app.UseCors("AllowReactApp"); 
 app.UseAuthentication(); 

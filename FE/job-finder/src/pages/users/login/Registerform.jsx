@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Registerform.scss";
-import api from "../../../services/api";
+import authService from "../../../services/authService";
+import { ROUTES } from "../../../utils/router";
 
 export default function RegisterForm() {
     const [formData, setFormData] = useState({
@@ -48,7 +49,7 @@ export default function RegisterForm() {
         setLoading(true);
 
         try {
-            const response = await api.post("/auth/register", {
+            await authService.register({
                 fullName: formData.fullName,
                 email: formData.email,
                 userName: formData.userName,
@@ -56,12 +57,10 @@ export default function RegisterForm() {
                 accountType: "JobSeeker",
             });
 
-            // Nếu thành công rực rỡ (Trong interceptor Axios, mình đã cài đặt trả về data)
             setSuccess("Đăng ký thành công! Đang chuyển đến trang đăng nhập...");
-            setTimeout(() => navigate("/login"), 2000);
+            setTimeout(() => navigate(ROUTES.USER.LOGIN), 2000);
             
         } catch (err) {
-            // Kiểm tra lỗi từ Backend trả về thông qua interceptor Axios
             if (err.response && err.response.data) {
                 const data = err.response.data;
                 // Xử lý lỗi validation từ ASP.NET ModelState (errors là object)
@@ -281,7 +280,7 @@ export default function RegisterForm() {
 
                 <div className="login-link">
                     <span>Đã có tài khoản?</span>
-                    <Link to="/login">Đăng nhập ngay</Link>
+                    <Link to={ROUTES.USER.LOGIN}>Đăng nhập ngay</Link>
                 </div>
             </div>
         </div>

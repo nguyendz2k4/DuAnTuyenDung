@@ -2,25 +2,15 @@ import { useEffect, useState } from "react";
 import { useFavorite } from "../../../context/FavoriteContext";
 import { Link } from "react-router-dom";
 import { FaHeart } from "react-icons/fa";
-import axios from "axios";
-import logo1 from "../../../assets/imgs/logo_cty/conca.jpg";
+import jobService from "../../../services/jobService";
+import { getImageUrl, logo_default } from "../../../utils/imageUtils";
+import { ROUTES } from "../../../utils/router";
 import "./style.scss";
-
-// Cấu hình URL giống bên HomePage
-const API_BASE_URL = "http://192.168.1.4:7099"; 
 
 const FavoriteJobs = () => {
     const { favorites, toggleFavorite } = useFavorite();
     const [favoriteJobsList, setFavoriteJobsList] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // Hàm lấy ảnh chuẩn từ .NET
-    const getImageUrl = (imagePath) => {
-        if (!imagePath) return logo1;
-        if (imagePath.startsWith('http')) return imagePath;
-        // Trỏ về thư mục ảnh của .NET
-        return `${API_BASE_URL}/images/companies/${imagePath}`; 
-    };
 
     useEffect(() => {
         const fetchFavoriteJobs = async () => {
@@ -32,28 +22,24 @@ const FavoriteJobs = () => {
             }
 
             try {
-                // GỌI API .NET (Lấy danh sách job về để lọc)
-                // Lưu ý: Cách tối ưu hơn là viết API backend nhận vào mảng ID, 
-                // nhưng tạm thời ta lấy list về lọc client cho nhanh.
-                const response = await axios.get(`${API_BASE_URL}/api/jobs?limit=100`);
+                const res = await jobService.getJobs({ limit: 100 });
 
-                if (response.data?.success) {
-                    const allJobs = response.data.data;
+                if (res?.success) {
+                    const allJobs = res.data;
 
-                    // 1. Map dữ liệu từ .NET sang format của React
+                    // Map dữ liệu từ .NET sang format của React
                     const formattedJobs = allJobs.map(job => ({
-                        id: job.jobId,          // Quan trọng: map jobId -> id
+                        id: job.jobId,
                         title: job.title,
-                        company: job.companyName, // Quan trọng: map companyName -> company
+                        company: job.companyName,
                         logo: job.companyLogo,
                         salary: job.salaryRange,
                         location: job.location,
-                        isPro: job.isPro
+                        isPro: job.isPro,
                     }));
 
-                    // 2. Lọc những job có ID nằm trong danh sách yêu thích
+                    // Lọc những job có ID nằm trong danh sách yêu thích
                     const filtered = formattedJobs.filter(job => favorites.includes(job.id));
-                    
                     setFavoriteJobsList(filtered);
                 }
             } catch (err) {
@@ -69,7 +55,6 @@ const FavoriteJobs = () => {
     if (loading) {
         return (
             <div className="favorite-jobs-page">
-                 {/* Tận dụng cái loading spinner đẹp bạn vừa làm */}
                 <div className="loading-container">
                     <div className="loading-spinner"></div>
                 </div>
@@ -84,7 +69,7 @@ const FavoriteJobs = () => {
             {favoriteJobsList.length === 0 ? (
                 <div className="empty-state">
                     <p>Bạn chưa lưu việc làm nào hoặc bài đăng đã bị xóa.</p>
-                    <Link to="/" className="back-home-btn">
+                    <Link to={ROUTES.USER.HOME} className="back-home-btn">
                         Về trang chủ
                     </Link>
                 </div>
@@ -94,14 +79,13 @@ const FavoriteJobs = () => {
                         <div 
                             key={job.id} 
                             className={`job-card ${job.isPro ? "card-pro" : ""}`}
-                            // Thêm hiệu ứng trồi lên y hệt trang chủ
                             style={{ animationDelay: `${index * 0.1}s` }}
                         >
                             <div className="job-logo">
                                 <img
                                     src={getImageUrl(job.logo)}
                                     alt={job.company}
-                                    onError={(e) => { e.target.src = logo1; }}
+                                    onError={(e) => { e.target.src = logo_default; }}
                                 />
                             </div>
 

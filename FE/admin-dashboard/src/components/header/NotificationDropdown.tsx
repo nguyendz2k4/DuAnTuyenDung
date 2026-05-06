@@ -1,40 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import notificationService from '../../services/notificationService';
+import { formatTime, getNotificationIcon } from '../../utils/formatters';
+import type { NotificationItem } from '../../types/api';
 
 export default function EmployerNotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
-  const API_BASE = 'http://localhost/DuAnWebTuyenDung/BE/admin';
-
-  // Lấy thông tin user từ localStorage
-  const getUser = () => {
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      return user.user_id || 7; // Default user_id để test
-    } catch {
-      return 7;
-    }
-  };
-
-  const userId = getUser();
+  const userId = user?.userId ? parseInt(user.userId) : 0;
 
   // Load thông báo khi component mount và mỗi 30 giây
-  useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Poll mỗi 30s
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
+    if (!userId) return;
     try {
-      const response = await fetch(
-        `${API_BASE}/notifications.php?user_id=${userId}&limit=20`
-      );
-      const data = await response.json();
-
+      const { data } = await notificationService.getNotifications(userId);
       if (data.success) {
         setNotifications(data.data);
         setUnreadCount(data.unread_count);
@@ -42,21 +24,18 @@ export default function EmployerNotificationDropdown() {
     } catch (error) {
       console.error('Lỗi tải thông báo:', error);
     }
-  };
+  }, [userId]);
 
-  const markAsRead = async (notificationId) => {
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  const markAsRead = async (notificationId: number) => {
     try {
-      const response = await fetch(`${API_BASE}/notifications.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: userId,
-          notification_id: notificationId
-        })
-      });
-
-      if (response.ok) {
-        // Cập nhật local state
+      const response = await notificationService.markAsRead(userId, notificationId);
+      if (response.status === 200) {
         setNotifications(notifications.map(n =>
           n.notification_id === notificationId ? { ...n, is_read: 1 } : n
         ));
@@ -69,16 +48,8 @@ export default function EmployerNotificationDropdown() {
 
   const markAllAsRead = async () => {
     try {
-      const response = await fetch(`${API_BASE}/notifications.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: userId,
-          mark_all: true
-        })
-      });
-
-      if (response.ok) {
+      const response = await notificationService.markAllAsRead(userId);
+      if (response.status === 200) {
         setNotifications(notifications.map(n => ({ ...n, is_read: 1 })));
         setUnreadCount(0);
       }
@@ -87,17 +58,15 @@ export default function EmployerNotificationDropdown() {
     }
   };
 
-  const handleNotificationClick = (notification) => {
-    // Đánh dấu đã đọc
+  const handleNotificationClick = (notification: NotificationItem) => {
     if (!notification.is_read) {
       markAsRead(notification.notification_id);
     }
 
-    // Điều hướng dựa vào type
     if (notification.type === 'new_application') {
-      window.location.href = '/employer/applications';
+      window.location.href = '/application';
     } else if (notification.type === 'new_message') {
-      window.location.href = '/employer/messages';
+      window.location.href = '/application';
     }
 
     setIsOpen(false);
@@ -106,30 +75,8 @@ export default function EmployerNotificationDropdown() {
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
-      fetchNotifications(); // Refresh khi mở dropdown
+      fetchNotifications();
     }
-  };
-
-  const getNotificationIcon = (type) => {
-    const icons = {
-      new_application: '📄',
-      new_message: '💬',
-      application_status: '✅'
-    };
-    return icons[type] || '📢';
-  };
-
-  const formatTime = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000); // seconds
-
-    if (diff < 60) return 'Vừa xong';
-    if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)} ngày trước`;
-
-    return date.toLocaleDateString('vi-VN');
   };
 
   return (
@@ -267,7 +214,7 @@ export default function EmployerNotificationDropdown() {
             {notifications.length > 0 && (
               <button
                 onClick={() => {
-                  window.location.href = '/employer/notifications';
+                  window.location.href = '/notifications';
                   setIsOpen(false);
                 }}
                 className="block w-full px-4 py-2 mt-3 text-sm font-medium text-center text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
