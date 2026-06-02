@@ -4,10 +4,10 @@ import { IoIosArrowDropleft, IoIosArrowDropright } from "react-icons/io";
 import { IoFilterSharp } from "react-icons/io5";
 import { FaRegHeart, FaHeart, FaChevronDown, FaCheck } from "react-icons/fa";
 
-import logo_title from "../../../assets/imgs/logo/label-toppy-ai.png";
 import "./style.scss";
 import Pagination from "../../../components/common/Pagination";
 import Slider from "../../../components/common/Slider";
+import JobCard from "../../../components/common/JobCard";
 import { useFavorite } from "../../../context/FavoriteContext";
 import jobService from "../../../services/jobService";
 import { getImageUrl, logo_default } from "../../../utils/imageUtils";
@@ -141,13 +141,15 @@ const HomePage = () => {
       <div className="box-header">
         <div className="box-header-left">
           <div className="box-header-title">Việc làm tốt nhất</div>
-          <div className="box-logo"><img src={logo_title} alt="logo" /></div>
+          <div className="box-logo-badge">
+            <span className="badge-ai-gradient">TopJob SmartMatch AI</span>
+          </div>
         </div>
         <div className="box-header-right">
           <span className="box-header-right-text">Xem tất cả</span>
           <div className="box-header-right-icon">
-            <IoIosArrowDropleft className="icon-left" size={32} color="#00b14f" />
-            <IoIosArrowDropright className="icon-right" size={32} color="#00b14f" />
+            <IoIosArrowDropleft className="icon-left" size={32} color="#6366f1" />
+            <IoIosArrowDropright className="icon-right" size={32} color="#6366f1" />
           </div>
         </div>
       </div>
@@ -213,7 +215,9 @@ const HomePage = () => {
 
       {/* JOB LIST */}
       {loading ? (
-        <div className="loading-container">Đang tải danh sách...</div>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+        </div>
       ) : error ? (
         <div className="error-container" style={{color: 'red'}}>{error}</div>
       ) : (
@@ -221,35 +225,20 @@ const HomePage = () => {
           {jobs.length > 0 ? jobs.map((job, index) => {
              const isLiked = isFavorite(job.id);
              return (
-              <div 
+              <JobCard 
                 key={job.id} 
-                className={`job-card ${job.isPro ? "card-pro" : ""}`}
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="job-logo">
-                  <img src={getImageUrl(job.logo)} alt={job.company} onError={(e) => e.target.src = logo_default} />
-                </div>
-                <div className="job-info">
-                  <h3 className="job-title"><Link to={`/job/${job.id}`}>{job.title}</Link></h3>
-                  <p className="company-name">
-                    {job.isPro && <span className="label-pro">PRO</span>} {job.company}
-                  </p>
-                  <div className="job-meta">
-                    <span className="salary">{job.salary}</span>
-                    <span className="location">{job.location}</span>
-                  </div>
-                </div>
-                <button className={`save-icon ${isLiked ? "active" : ""}`} onClick={() => toggleFavorite(job.id)}>
-                  {isLiked ? <FaHeart size={20} color="#00b14f" /> : <FaRegHeart size={20} />}
-                </button>
-              </div>
+                job={job}
+                isLiked={isLiked}
+                onToggleLike={toggleFavorite}
+                style={{ animationDelay: `${index * 0.08}s` }}
+              />
             );
           }) : <div className="empty-container">Không tìm thấy công việc nào phù hợp.</div>}
         </div>
       )}
 
       <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage}
-                  prevIcon={<IoIosArrowDropleft />} nextIcon={<IoIosArrowDropright />} color="#00b14f" />
+                  prevIcon={<IoIosArrowDropleft />} nextIcon={<IoIosArrowDropright />} color="#6366f1" />
 
       <Slider />
 

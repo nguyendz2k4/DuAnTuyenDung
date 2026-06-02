@@ -1,29 +1,16 @@
-// AppliedJobsPage.scss
-
-$bg: #f6f7fb;
-$white: #fff;
-$border: #eee;
-$text: #111;
-$text2: #555;
-$text3: #666;
-
-$radius-lg: 16px;
-$radius-md: 14px;
-$radius-sm: 10px;
-
-$accent: #f59e0b; // vàng kiểu TopCV
-$accent-soft: #fff7ed;
+@import "../../../style/page/theme";
 
 .applied-wrap {
-    background: $bg;
-    padding: 24px 0;
+    background: $bg-main;
+    padding: 40px 24px;
+    min-height: 80vh;
 
     .applied-container {
         max-width: 1200px;
         margin: 0 auto;
         display: grid;
         grid-template-columns: 320px 1fr;
-        gap: 16px;
+        gap: 24px;
 
         @media (max-width: 992px) {
             grid-template-columns: 1fr;
@@ -32,230 +19,261 @@ $accent-soft: #fff7ed;
 
     .applied-left,
     .applied-right {
-        background: $white;
+        background: #ffffff;
         border-radius: $radius-lg;
-        padding: 16px;
-        border: 1px solid $border;
+        padding: 24px;
+        border: 1px solid $border-color;
+        box-shadow: $shadow-sm;
     }
 
-    // LEFT
+    // LEFT PANEL
     .applied-left {
         h3 {
-            margin: 0 0 10px;
-            font-size: 18px;
-            font-weight: 700;
-            color: $text;
+            margin: 0 0 16px;
+            font-size: 16px;
+            font-weight: 800;
+            color: $text-main;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .search-box {
             display: flex;
             gap: 8px;
-            margin: 12px 0 16px;
+            margin: 12px 0 20px;
 
             input {
                 flex: 1;
-                padding: 10px 12px;
-                border-radius: $radius-sm;
-                border: 1px solid #ddd;
+                padding: 10px 14px;
+                border-radius: $radius-md;
+                border: 1.5px solid $border-color;
                 outline: none;
+                font-size: 13.5px;
+                transition: $transition-fast;
 
                 &:focus {
-                    border-color: rgba($accent, 0.6);
-                    box-shadow: 0 0 0 3px rgba($accent, 0.15);
+                    border-color: $primary;
+                    box-shadow: 0 0 0 3px rgba($primary, 0.1);
                 }
             }
 
             button {
-                width: 44px;
+                padding: 10px 16px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                border-radius: $radius-sm;
+                border-radius: $radius-md;
                 border: 0;
-                background: $accent;
-                color: $white;
+                background: linear-gradient(135deg, $primary 0%, $secondary 100%);
+                color: #ffffff;
+                font-weight: 700;
+                font-size: 13px;
                 cursor: pointer;
-
-                i {
-                    font-size: 18px;
-                    line-height: 1;
-                }
+                box-shadow: 0 2px 6px rgba($primary, 0.2);
+                transition: $transition-smooth;
 
                 &:hover {
-                    filter: brightness(0.98);
+                    box-shadow: 0 4px 12px rgba($primary, 0.3);
+                    opacity: 0.95;
                 }
             }
         }
 
         .filter-block {
+            border-top: 1px solid $border-light;
+            padding-top: 16px;
+
             .filter-title {
-                font-weight: 600;
-                margin-bottom: 10px;
-                color: $text;
+                font-weight: 700;
+                margin-bottom: 12px;
+                color: $text-main;
+                font-size: 13px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
 
             .filter-list {
                 display: flex;
-                flex-wrap: wrap;
+                flex-direction: column;
                 gap: 8px;
 
                 .chip {
                     display: inline-flex;
                     align-items: center;
-                    gap: 6px;
-                    padding: 8px 10px;
-                    border-radius: 999px;
-                    border: 1px solid $border;
-                    background: $white;
+                    justify-content: space-between;
+                    padding: 10px 16px;
+                    border-radius: $radius-md;
+                    border: 1.5px solid $border-color;
+                    background: #ffffff;
                     cursor: pointer;
-                    color: $text2;
-                    transition: 0.15s ease;
-
-                    i {
-                        font-size: 15px;
-                    }
+                    color: $text-muted;
+                    font-size: 13.5px;
+                    font-weight: 600;
+                    transition: $transition-fast;
+                    text-align: left;
 
                     &:hover {
-                        border-color: rgba($accent, 0.55);
-                        background: rgba($accent, 0.06);
+                        border-color: rgba($primary, 0.4);
+                        background: $border-light;
+                        color: $primary;
                     }
 
                     &.active {
-                        border-color: $accent;
-                        background: $accent-soft;
-                        color: $text;
-                        font-weight: 600;
+                        border-color: $primary;
+                        background: $primary-light;
+                        color: $primary;
                     }
                 }
             }
         }
     }
 
-    // RIGHT
+    // RIGHT PANEL
     .applied-right {
         .list-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            color: $text2;
+            margin-bottom: 16px;
+            color: $text-muted;
+            font-size: 13.5px;
+            font-weight: 500;
 
             b {
-                color: $text;
+                color: $text-main;
+                font-weight: 700;
             }
         }
 
         .empty {
-            padding: 24px;
+            padding: 48px;
             text-align: center;
-            color: $text3;
-            border: 1px dashed #ddd;
-            border-radius: $radius-md;
-            background: rgba(#fff, 0.6);
+            color: $text-muted;
+            border: 2px dashed $border-color;
+            border-radius: $radius-lg;
+            background: rgba(#ffffff, 0.6);
+            font-weight: 500;
+            font-size: 14px;
         }
 
         .job-list {
-            display: grid;
-            gap: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .job-card {
             display: grid;
-            grid-template-columns: 56px 1fr 190px;
-            gap: 12px;
-            padding: 12px;
-            border: 1px solid $border;
-            border-radius: $radius-md;
-            background: $white;
+            grid-template-columns: 64px 1fr 120px;
+            gap: 16px;
+            padding: 16px;
+            border: 1px solid $border-color;
+            border-radius: $radius-lg;
+            background: #ffffff;
+            transition: $transition-smooth;
+
+            &:hover {
+                border-color: rgba($primary, 0.3);
+                box-shadow: $shadow-md;
+            }
 
             @media (max-width: 992px) {
-                grid-template-columns: 56px 1fr;
+                grid-template-columns: 64px 1fr;
             }
 
             .job-logo {
-                width: 56px;
-                height: 56px;
-                border-radius: 12px;
-                object-fit: cover;
-                border: 1px solid $border;
-                background: #fafafa;
+                width: 64px;
+                height: 64px;
+                border-radius: $radius-md;
+                object-fit: contain;
+                border: 1px solid $border-color;
+                background: #ffffff;
+                padding: 4px;
+                flex-shrink: 0;
             }
 
             .job-info {
+                min-width: 0;
+
                 .job-title {
                     font-weight: 700;
                     font-size: 16px;
                     margin-bottom: 4px;
-                    color: $text;
+                    color: $text-main;
                 }
 
                 .job-company {
-                    color: $text2;
-                    margin-bottom: 6px;
+                    color: $text-muted;
+                    margin-bottom: 8px;
+                    font-size: 13.5px;
+                    font-weight: 500;
                 }
 
                 .job-meta,
                 .job-meta2 {
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 12px;
-                    color: $text3;
-                    font-size: 13px;
+                    gap: 16px;
+                    color: $text-muted;
+                    font-size: 12.5px;
+                    font-weight: 500;
 
                     span {
                         display: inline-flex;
                         align-items: center;
                         gap: 6px;
 
-                        i {
-                            font-size: 14px;
+                        svg {
+                          color: $primary;
                         }
                     }
                 }
 
                 .job-meta2 {
-                    margin-top: 6px;
+                    margin-top: 10px;
+                    border-top: 1px solid $border-light;
+                    padding-top: 10px;
+                    align-items: center;
+
+                    svg {
+                      color: $text-light !important;
+                    }
                 }
 
                 .badge {
                     display: inline-flex;
                     align-items: center;
-                    gap: 6px;
-                    padding: 4px 10px;
-                    border-radius: 999px;
-                    font-size: 13px;
-                    border: 1px solid $border;
-                    background: #f3f4f6;
-                    color: $text;
-
-                    i {
-                        font-size: 14px;
-                    }
+                    padding: 4px 12px;
+                    border-radius: $radius-full;
+                    font-size: 11px;
+                    font-weight: 700;
+                    border: 1px solid transparent;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
                 }
 
-                // màu theo status (tuỳ bạn mapping apply_status)
                 .badge-pending {
-                    background: $accent-soft;
-                    color: #92400e;
-                    border-color: rgba($accent, 0.35);
+                    background: #fff7ed;
+                    color: #d97706;
+                    border-color: rgba(#d97706, 0.15);
                 }
 
                 .badge-viewed {
                     background: #eff6ff;
-                    color: #1d4ed8;
-                    border-color: rgba(#1d4ed8, 0.25);
+                    color: #2563eb;
+                    border-color: rgba(#2563eb, 0.15);
                 }
 
                 .badge-accepted {
                     background: #ecfdf5;
-                    color: #047857;
-                    border-color: rgba(#047857, 0.25);
+                    color: #059669;
+                    border-color: rgba(#059669, 0.15);
                 }
 
                 .badge-rejected {
                     background: #fef2f2;
-                    color: #b91c1c;
-                    border-color: rgba(#b91c1c, 0.25);
+                    color: #dc2626;
+                    border-color: rgba(#dc2626, 0.15);
                 }
             }
 
@@ -269,41 +287,43 @@ $accent-soft: #fff7ed;
                     grid-column: 1 / -1;
                     flex-direction: row;
                     justify-content: flex-start;
+                    margin-top: 8px;
                 }
 
                 button {
                     display: inline-flex;
                     align-items: center;
                     justify-content: center;
-                    gap: 8px;
-                    padding: 10px 12px;
-                    border-radius: $radius-sm;
+                    gap: 6px;
+                    padding: 10px 14px;
+                    border-radius: $radius-full;
                     cursor: pointer;
-                    transition: 0.15s ease;
-                    font-weight: 600;
-
-                    i {
-                        font-size: 15px;
-                    }
+                    transition: $transition-fast;
+                    font-weight: 700;
+                    font-size: 12px;
                 }
 
                 .btn-outline {
-                    border: 1px solid #ddd;
-                    background: $white;
-                    color: $text;
+                    border: 1.5px solid $border-color;
+                    background: #ffffff;
+                    color: $text-muted;
 
                     &:hover {
-                        background: rgba(#000, 0.02);
+                        border-color: rgba($primary, 0.3);
+                        color: $primary;
+                        background: $primary-light;
                     }
                 }
 
                 .btn-primary {
                     border: 0;
-                    background: #111827;
-                    color: $white;
+                    background: linear-gradient(135deg, $primary 0%, $secondary 100%);
+                    color: #ffffff;
+                    box-shadow: 0 2px 6px rgba($primary, 0.15);
 
                     &:hover {
-                        filter: brightness(1.02);
+                        box-shadow: 0 4px 12px rgba($primary, 0.25);
+                        opacity: 0.95;
                     }
                 }
             }
@@ -313,17 +333,26 @@ $accent-soft: #fff7ed;
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-top: 16px;
+            margin-top: 24px;
 
             button {
                 display: inline-flex;
                 align-items: center;
-                gap: 8px;
-                padding: 10px 12px;
-                border-radius: $radius-sm;
-                border: 1px solid #ddd;
-                background: $white;
+                gap: 6px;
+                padding: 10px 18px;
+                border-radius: $radius-full;
+                border: 1.5px solid $border-color;
+                background: #ffffff;
+                color: $text-muted;
+                font-weight: 700;
+                font-size: 13px;
                 cursor: pointer;
+                transition: $transition-fast;
+
+                &:hover:not(:disabled) {
+                    border-color: rgba($primary, 0.3);
+                    color: $primary;
+                }
 
                 &:disabled {
                     opacity: 0.5;

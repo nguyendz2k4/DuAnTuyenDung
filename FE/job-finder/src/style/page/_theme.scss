@@ -1,1 +1,37 @@
-$theme-color : ()
+// TopJob - Modern Startup Brand Identity Colors & Variables
+
+// --- Brand Colors ---
+$primary: #6366f1;          // Indigo
+$primary-hover: #4f46e5;    // Indigo Darker
+$primary-light: #eef2ff;    // Light Indigo for tags
+$secondary: #7c3aed;        // Violet
+$accent: #f97316;           // Amber Coral (for PRO elements/highlights)
+$accent-light: #fff7ed;     // Light Amber for PRO backgrounds
+$success: #10b981;          // Emerald Green for badges/success
+$success-light: #ecfdf5;
+
+// --- Neutral Grays ---
+$bg-main: #f8fafc;          // Slate 50 (clean page background)
+$bg-card: #ffffff;          // Pure White for cards
+$bg-dark: #0f172a;          // Slate 900 (ultra premium footer/dark sections)
+$bg-dark-card: #1e293b;     // Slate 800
+
+$text-main: #0f172a;        // Slate 900 (primary headers)
+$text-muted: #64748b;       // Slate 500 (muted descriptions)
+$text-light: #94a3b8;       // Slate 400 (hints)
+
+$border-color: #e2e8f0;     // Slate 200 (delicate borders)
+$border-light: #f1f5f9;     // Slate 100
+
+// --- Design Tokens ---
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-full: 9999px;
+
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 20px -2px rgba(15, 23, 42, 0.08), 0 2px 8px -1px rgba(15, 23, 42, 0.04);
+$shadow-lg: 0 12px 30px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+
+$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);

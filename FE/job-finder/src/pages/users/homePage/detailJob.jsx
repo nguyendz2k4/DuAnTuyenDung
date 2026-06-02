@@ -1,5 +1,20 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { 
+  FiDollarSign, 
+  FiMapPin, 
+  FiBriefcase, 
+  FiEye, 
+  FiClock, 
+  FiUsers, 
+  FiGrid, 
+  FiArrowLeft, 
+  FiHeart, 
+  FiAward, 
+  FiCalendar, 
+  FiBookOpen, 
+  FiCompass 
+} from "react-icons/fi";
 import { useAuth } from "../../../context/AuthContext";
 import jobService from "../../../services/jobService";
 import { resolveImageUrl } from "../../../utils/imageUtils";
@@ -86,6 +101,7 @@ const DetailJob = () => {
     // State UI
     const [selectedImage, setSelectedImage] = useState(null);
     const [openApply, setOpenApply] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
 
     // State Data
     const [job, setJob] = useState(null);
@@ -132,7 +148,7 @@ const DetailJob = () => {
         return (
             <div className="detail-job__loading">
                 <div className="spinner"></div>
-                <p>Đang tải thông tin...</p>
+                <p>Đang tải thông tin việc làm...</p>
             </div>
         );
     }
@@ -142,7 +158,9 @@ const DetailJob = () => {
         return (
             <div className="detail-job__notfound">
                 <p>{error || "Không tìm thấy công việc."}</p>
-                <button onClick={() => navigate(-1)}>← Quay lại</button>
+                <button onClick={() => navigate(-1)}>
+                    <FiArrowLeft style={{ marginRight: "6px" }} /> Quay lại
+                </button>
             </div>
         );
     }
@@ -153,35 +171,45 @@ const DetailJob = () => {
             {/* ===== HEADER ===== */}
             <header className="detail-job__header">
                 <div className="header-left">
+                    <button className="back-link-btn" onClick={() => navigate(-1)}>
+                        <FiArrowLeft /> <span>Quay lại trang danh sách</span>
+                    </button>
+                    
                     <h1 className="job-title">{job.title}</h1>
+                    
                     <div className="job-meta">
                         <div className="meta-item">
-                            <span className="icon">💰</span>
+                            <span className="icon-wrapper"><FiDollarSign /></span>
                             <span>{job.salary}</span>
                         </div>
                         <div className="meta-item">
-                            <span className="icon">📍</span>
+                            <span className="icon-wrapper"><FiMapPin /></span>
                             <span>{job.location}</span>
                         </div>
                         <div className="meta-item">
-                            <span className="icon">🎓</span>
+                            <span className="icon-wrapper"><FiBriefcase /></span>
                             <span>{job.experience}</span>
                         </div>
                         <div className="meta-item">
-                            <span className="icon">👁️</span>
+                            <span className="icon-wrapper"><FiEye /></span>
                             <span>{job.viewCount} lượt xem</span>
                         </div>
                     </div>
 
                     <div className="job-deadline">
-                        <span>🕒 Hạn nộp hồ sơ: {job.deadline}</span>
+                        <FiClock className="clock-icon" /> <span>Hạn nộp hồ sơ: {job.deadline}</span>
                     </div>
 
                     <div className="job-actions">
                         <button className="btn-apply" onClick={handleApplyClick}>
                             Ứng tuyển ngay
                         </button>
-                        <button className="btn-save">♡ Lưu tin</button>
+                        <button 
+                            className={`btn-save ${isSaved ? "is-saved" : ""}`}
+                            onClick={() => setIsSaved(!isSaved)}
+                        >
+                            <FiHeart /> <span>{isSaved ? "Đã lưu" : "Lưu tin tuyển dụng"}</span>
+                        </button>
                     </div>
 
                     <ApplyModal
@@ -193,18 +221,20 @@ const DetailJob = () => {
 
                 <div className="header-right">
                     <div className="company-card">
-                        <img 
-                            src={job.logo} 
-                            alt={job.company} 
-                            className="company-logo"
-                            onError={(e) => e.target.style.display = 'none'} 
-                        />
+                        <div className="company-logo-frame">
+                            <img 
+                                src={job.logo} 
+                                alt={job.company} 
+                                className="company-logo"
+                                onError={(e) => e.target.style.display = 'none'} 
+                            />
+                        </div>
                         <h3 className="company-name">{job.company}</h3>
 
                         <ul className="company-info">
-                            <li>👥 Quy mô: {job.companySize}</li>
-                            <li>🏢 Lĩnh vực: {job.industry}</li>
-                            <li>📍 Địa điểm: {job.address}</li>
+                            <li><FiUsers className="icon" /> <span>Quy mô: {job.companySize}</span></li>
+                            <li><FiCompass className="icon" /> <span>Lĩnh vực: {job.industry}</span></li>
+                            <li><FiMapPin className="icon" /> <span>Địa điểm: {job.address}</span></li>
                         </ul>
 
                         {job.companyWebsite !== "#" && (
@@ -214,7 +244,7 @@ const DetailJob = () => {
                                 rel="noopener noreferrer"
                                 className="view-company"
                             >
-                                Xem trang công ty →
+                                Ghé thăm website →
                             </a>
                         )}
                     </div>
@@ -225,7 +255,7 @@ const DetailJob = () => {
             <main className="detail-job__main">
                 <section className="detail-job__content">
                     <div className="section">
-                        <h2>Chi tiết tin tuyển dụng</h2>
+                        <h2>Chi tiết tuyển dụng</h2>
 
                         {job.tags && job.tags.length > 0 && (
                             <div className="tags">
@@ -235,14 +265,14 @@ const DetailJob = () => {
                             </div>
                         )}
 
-                        <h3>Mô tả công việc</h3>
+                        <h3 className="section-subtitle">Mô tả công việc</h3>
                         <ul className="list-disc">
                             {job.descriptionList.map((item, index) => (
                                 <li key={index}>{item}</li>
                             ))}
                         </ul>
 
-                        <h3>Yêu cầu</h3>
+                        <h3 className="section-subtitle">Yêu cầu ứng viên</h3>
                         <ul className="list-disc">
                             {job.requirementsList.map((item, index) => (
                                 <li key={index}>{item}</li>
@@ -251,7 +281,7 @@ const DetailJob = () => {
 
                         {job.expertiseList && job.expertiseList.length > 0 && (
                             <>
-                                <h3>Chuyên môn (Tham khảo)</h3>
+                                <h3 className="section-subtitle">Chuyên môn yêu cầu</h3>
                                 <ul className="list-disc">
                                     {job.expertiseList.map((item, index) => (
                                         <li key={index}>{item}</li>
@@ -260,7 +290,7 @@ const DetailJob = () => {
                             </>
                         )}
 
-                        <h3>Quyền lợi</h3>
+                        <h3 className="section-subtitle">Quyền lợi và Đãi ngộ</h3>
                         <ul className="list-disc">
                             {job.benefitsList.map((item, index) => (
                                 <li key={index}>{item}</li>
@@ -269,28 +299,28 @@ const DetailJob = () => {
 
                         {/* Gallery ảnh */}
                         {job.images && job.images.some(img => img) && (
-                        <div className="job-images">
-                            <h3>Hình ảnh văn phòng</h3>
-                            <div className="image-gallery">
-                                {job.images.map((image, index) => {
-                                    if (!image || image === job.logo) return null;
-                                    return (
-                                        <div
-                                            key={index}
-                                            className="gallery-item"
-                                            onClick={() => setSelectedImage(image)}
-                                        >
-                                            <img
-                                                src={image}
-                                                alt={`Ảnh ${index + 1}`}
-                                                onError={(e) => e.target.style.display = 'none'}
-                                            />
-                                        </div>
-                                    );
-                                })}
+                            <div className="job-images">
+                                <h3 className="section-subtitle">Hình ảnh văn phòng làm việc</h3>
+                                <div className="image-gallery">
+                                    {job.images.map((image, index) => {
+                                        if (!image || image === job.logo) return null;
+                                        return (
+                                            <div
+                                                key={index}
+                                                className="gallery-item"
+                                                onClick={() => setSelectedImage(image)}
+                                            >
+                                                <img
+                                                    src={image}
+                                                    alt={`Ảnh văn phòng ${index + 1}`}
+                                                    onError={(e) => e.target.style.display = 'none'}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                     </div>
                 </section>
 
@@ -298,28 +328,28 @@ const DetailJob = () => {
                     <div className="sidebar-box">
                         <h3>Thông tin chung</h3>
                         <ul>
-                            <li>🧑‍💼 Cấp bậc: {job.level}</li>
-                            <li>🎓 Học vấn: {job.education}</li>
-                            <li>👥 Số lượng tuyển: {job.quantity}</li>
-                            <li>📅 Ngày đăng: {job.createdAt}</li>
+                            <li><FiAward className="icon" /> <span><strong>Cấp bậc:</strong> {job.level}</span></li>
+                            <li><FiBookOpen className="icon" /> <span><strong>Học vấn:</strong> {job.education}</span></li>
+                            <li><FiUsers className="icon" /> <span><strong>Số lượng tuyển:</strong> {job.quantity}</span></li>
+                            <li><FiCalendar className="icon" /> <span><strong>Ngày đăng:</strong> {job.createdAt}</span></li>
                         </ul>
                     </div>
 
                     <div className="sidebar-box">
                         <h3>Địa điểm làm việc</h3>
-                        <p>📍 {job.address}</p>
+                        <p className="sidebar-address"><FiMapPin className="pin-icon" /> {job.address}</p>
                     </div>
 
-                    <div className="sidebar-box">
+                    <div className="sidebar-box banner-box">
                         <h3>Cách thức ứng tuyển</h3>
-                        <p>Ứng viên nộp hồ sơ trực tuyến bằng cách bấm <strong>Ứng tuyển ngay</strong> dưới đây.</p>
+                        <p>Ứng viên nộp hồ sơ trực tuyến nhanh chóng bằng cách bấm vào nút dưới đây.</p>
                         <button
                             className="btn-apply-sidebar"
                             onClick={handleApplyClick}
                         >
                             Ứng tuyển ngay
                         </button>
-                        <p className="deadline-note">Hạn nộp hồ sơ: {job.deadline}</p>
+                        <p className="deadline-note"><FiClock /> Hạn ứng tuyển: {job.deadline}</p>
                     </div>
                 </aside>
             </main>
@@ -329,7 +359,7 @@ const DetailJob = () => {
                 <div className="image-modal" onClick={() => setSelectedImage(null)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <span className="close-btn" onClick={() => setSelectedImage(null)}>&times;</span>
-                        <img src={selectedImage} alt="Preview" />
+                        <img src={selectedImage} alt="Văn phòng làm việc phóng to" />
                     </div>
                 </div>
             )}

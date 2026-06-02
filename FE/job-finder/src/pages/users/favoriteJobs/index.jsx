@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useFavorite } from "../../../context/FavoriteContext";
 import { Link } from "react-router-dom";
-import { FaHeart } from "react-icons/fa";
+import JobCard from "../../../components/common/JobCard";
 import jobService from "../../../services/jobService";
-import { getImageUrl, logo_default } from "../../../utils/imageUtils";
 import { ROUTES } from "../../../utils/router";
 import "./style.scss";
 
@@ -76,39 +75,13 @@ const FavoriteJobs = () => {
             ) : (
                 <div className="job-list">
                     {favoriteJobsList.map((job, index) => (
-                        <div 
-                            key={job.id} 
-                            className={`job-card ${job.isPro ? "card-pro" : ""}`}
-                            style={{ animationDelay: `${index * 0.1}s` }}
-                        >
-                            <div className="job-logo">
-                                <img
-                                    src={getImageUrl(job.logo)}
-                                    alt={job.company}
-                                    onError={(e) => { e.target.src = logo_default; }}
-                                />
-                            </div>
-
-                            <div className="job-info">
-                                <h3 className="job-title">
-                                    <Link to={`/job/${job.id}`}>{job.title}</Link>
-                                </h3>
-                                <p className="company-name">
-                                    {job.isPro && <span className="label-pro">PRO</span>} {job.company}
-                                </p>
-                                <div className="job-meta">
-                                    <span className="salary">{job.salary}</span>
-                                    <span className="location">{job.location}</span>
-                                </div>
-                            </div>
-
-                            <button
-                                className="save-icon active"
-                                onClick={() => toggleFavorite(job.id)}
-                            >
-                                <FaHeart size={20} color="#00b14f" />
-                            </button>
-                        </div>
+                        <JobCard
+                            key={job.id}
+                            job={job}
+                            isLiked={true}
+                            onToggleLike={toggleFavorite}
+                            style={{ animationDelay: `${index * 0.08}s` }}
+                        />
                     ))}
                 </div>
             )}

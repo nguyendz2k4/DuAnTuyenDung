@@ -76,27 +76,27 @@ export default function TopCVProRegister() {
 
     if (loading) {
         return (
-            <div className="topcv-pro-page">
+            <div className="topjob-premium-page">
                 <div className="loading-state">
                     <div className="spinner"></div>
-                    <p>Đang tải...</p>
+                    <p>Đang tải danh sách dịch vụ...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="topcv-pro-page">
-            <div className="topcv-pro-container">
+        <div className="topjob-premium-page">
+            <div className="topjob-premium-container">
                 {/* Header */}
                 <div className="pro-header">
                     <div className="pro-badge">
                         <FaCrown className="crown-icon" />
-                        <span>TopCV Pro</span>
+                        <span>TopJob Premium</span>
                     </div>
-                    <h1 className="pro-title">Nâng Tầm Tuyển Dụng</h1>
+                    <h1 className="pro-title">Nâng Tầm Tuyển Dụng Vượt Trội</h1>
                     <p className="pro-subtitle">
-                        Đăng ký gói TopCV Pro để ưu tiên hiển thị tin tuyển dụng, tiếp cận ứng viên chất lượng cao hơn
+                        Đăng ký các gói dịch vụ TopJob Premium để tin tuyển dụng của bạn được ưu tiên hiển thị hàng đầu, tiếp cận lượng ứng viên tài năng chất lượng cao nhanh chóng nhất.
                     </p>
                 </div>
 
@@ -131,14 +131,14 @@ export default function TopCVProRegister() {
                                     <div className="feature-item">
                                         <FaCheck className="check-icon" />
                                         <div>
-                                            <p className="feature-title">Ưu tiên hiển thị</p>
-                                            <p className="feature-detail">Priority: {features.priority || 100}</p>
+                                            <p className="feature-title">Ưu tiên hiển thị tin bài</p>
+                                            <p className="feature-detail">Priority weight: {features.priority || 100}</p>
                                         </div>
                                     </div>
                                     <div className="feature-item">
                                         <FaCheck className="check-icon" />
                                         <div>
-                                            <p className="feature-title">Vị trí nổi bật</p>
+                                            <p className="feature-title">Nhãn PRO vàng kim nổi bật</p>
                                         </div>
                                     </div>
                                 </div>
@@ -148,7 +148,7 @@ export default function TopCVProRegister() {
                                         onClick={() => handleSelectPackage(pkg)}
                                         className="btn-register-pkg"
                                     >
-                                        Đăng ký ngay
+                                        Kích hoạt ngay
                                     </button>
                                 </div>
                             </div>
@@ -164,12 +164,39 @@ export default function TopCVProRegister() {
                                 onClick={() => setShowPaymentModal(false)}
                                 className="close-btn"
                             >
-                                <FaTimes size={24} />
+                                <FaTimes size={20} />
                             </button>
 
                             <div className="modal-body">
-                                <h3>Xác nhận thanh toán</h3>
-                                <p>Gói: {selectedPackage.name}</p>
+                                <h3>Xác nhận kích hoạt gói</h3>
+                                <p className="pkg-info">Bạn đã chọn gói: <strong>{selectedPackage.name}</strong></p>
+                                <p className="pkg-price">Tổng thanh toán: <strong>{formatCurrency(selectedPackage.price)}</strong></p>
+                                
+                                <div className="payment-method-select">
+                                    <p className="section-label">Phương thức thanh toán:</p>
+                                    <div className="methods">
+                                        <label className={`method-card ${paymentMethod === 'momo' ? 'active' : ''}`}>
+                                            <input 
+                                                type="radio" 
+                                                name="method" 
+                                                value="momo" 
+                                                checked={paymentMethod === 'momo'} 
+                                                onChange={(e) => setPaymentMethod(e.target.value)} 
+                                            />
+                                            Ví MoMo
+                                        </label>
+                                        <label className={`method-card ${paymentMethod === 'atm' ? 'active' : ''}`}>
+                                            <input 
+                                                type="radio" 
+                                                name="method" 
+                                                value="atm" 
+                                                checked={paymentMethod === 'atm'} 
+                                                onChange={(e) => setPaymentMethod(e.target.value)} 
+                                            />
+                                            Thẻ ATM / Banking
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
 
                             <button
@@ -177,7 +204,7 @@ export default function TopCVProRegister() {
                                 disabled={isProcessing}
                                 className="btn-confirm"
                             >
-                                {isProcessing ? 'Đang xử lý...' : 'Xác nhận ngay'}
+                                {isProcessing ? 'Đang kích hoạt...' : 'Xác nhận thanh toán'}
                             </button>
                         </div>
                     </div>
@@ -189,8 +216,8 @@ export default function TopCVProRegister() {
                         <div className="payment-modal success">
                             <div className="modal-body">
                                 <FaCheck className="success-icon" />
-                                <h3>Đăng ký thành công!</h3>
-                                <p>Gói của bạn đã được kích hoạt.</p>
+                                <h3>Đăng ký Premium thành công!</h3>
+                                <p>Gói dịch vụ đã được kích hoạt trên hệ thống TopJob.</p>
                             </div>
                         </div>
                     </div>

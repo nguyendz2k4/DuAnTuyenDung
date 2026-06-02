@@ -1,8 +1,9 @@
-// TopCVProRegister styles - chuyển từ Tailwind sang SCSS cho đồng nhất
-.topcv-pro-page {
+@import "../../../style/page/theme";
+
+.topjob-premium-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #f3e8ff 100%);
-  padding: 48px 16px;
+  padding: 64px 24px;
 
   .loading-state {
     display: flex;
@@ -12,22 +13,23 @@
     min-height: 60vh;
 
     .spinner {
-      width: 64px;
-      height: 64px;
-      border: 3px solid #e5e7eb;
-      border-top-color: #4f46e5;
+      width: 48px;
+      height: 48px;
+      border: 3px solid $border-color;
+      border-top-color: $primary;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
 
     p {
       margin-top: 16px;
-      color: #6b7280;
+      color: $text-muted;
+      font-weight: 600;
     }
   }
 }
 
-.topcv-pro-container {
+.topjob-premium-container {
   max-width: 1152px;
   margin: 0 auto;
 }
@@ -35,67 +37,73 @@
 // Header
 .pro-header {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 56px;
 
   .pro-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: linear-gradient(to right, #f59e0b, #f97316);
-    color: #fff;
-    padding: 8px 16px;
-    border-radius: 9999px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-    font-weight: 600;
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    color: #ffffff;
+    padding: 8px 20px;
+    border-radius: $radius-full;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 
     .crown-icon {
-      font-size: 20px;
+      font-size: 14px;
     }
   }
 
   .pro-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #1f2937;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: $text-main;
     margin-bottom: 16px;
   }
 
   .pro-subtitle {
-    font-size: 1.1rem;
-    color: #6b7280;
+    font-size: 15px;
+    color: $text-muted;
     max-width: 640px;
     margin: 0 auto;
-    line-height: 1.6;
+    line-height: 1.7;
   }
 }
 
 // Packages Grid
 .packages-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 32px;
-  margin-bottom: 48px;
+  margin-bottom: 56px;
 }
 
 .package-card {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-md;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: $transition-smooth;
   border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
-    transform: scale(1.03);
-    border-color: #4f46e5;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+    transform: translateY(-6px);
+    border-color: $primary;
+    box-shadow: $shadow-lg;
   }
 
   .package-header {
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
-    padding: 24px;
-    color: #fff;
+    background: linear-gradient(135deg, $primary 0%, $secondary 100%);
+    padding: 32px 24px;
+    color: #ffffff;
 
     .package-name {
       display: flex;
@@ -109,34 +117,37 @@
       }
 
       h3 {
-        font-size: 1.5rem;
-        font-weight: 700;
+        font-size: 20px;
+        font-weight: 800;
         margin: 0;
       }
     }
 
     .package-desc {
-      color: #c7d2fe;
-      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
       margin: 0;
+      line-height: 1.4;
     }
   }
 
   .package-price {
     padding: 24px;
     text-align: center;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid $border-light;
+    background-color: $bg-main;
 
     .price-amount {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #1f2937;
-      margin-bottom: 8px;
+      font-size: 26px;
+      font-weight: 800;
+      color: $text-main;
+      margin-bottom: 4px;
     }
 
     .price-duration {
-      color: #9ca3af;
-      font-size: 0.875rem;
+      color: $text-light;
+      font-size: 12.5px;
+      font-weight: 600;
     }
   }
 
@@ -144,7 +155,8 @@
     padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
+    flex: 1;
 
     .feature-item {
       display: flex;
@@ -152,20 +164,21 @@
       gap: 12px;
 
       .check-icon {
-        color: #22c55e;
+        color: $success;
         margin-top: 3px;
         flex-shrink: 0;
       }
 
       .feature-title {
-        font-weight: 500;
-        color: #1f2937;
+        font-weight: 700;
+        color: $text-main;
         margin: 0;
+        font-size: 13.5px;
       }
 
       .feature-detail {
-        font-size: 0.875rem;
-        color: #6b7280;
+        font-size: 12.5px;
+        color: $text-muted;
         margin: 2px 0 0 0;
       }
     }
@@ -176,21 +189,20 @@
 
     .btn-register-pkg {
       width: 100%;
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      color: #fff;
-      font-weight: 600;
+      background: linear-gradient(135deg, $primary 0%, $secondary 100%);
+      color: #ffffff;
+      font-weight: 700;
       padding: 12px 24px;
-      border-radius: 12px;
+      border-radius: $radius-full;
       border: none;
       cursor: pointer;
-      font-size: 1rem;
-      box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
-      transition: all 0.2s ease;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba($primary, 0.25);
+      transition: $transition-smooth;
 
       &:hover {
-        background: linear-gradient(135deg, #4338ca, #6d28d9);
-        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
-        transform: scale(1.02);
+        box-shadow: 0 6px 18px rgba($primary, 0.35);
+        opacity: 0.95;
       }
     }
   }
@@ -200,84 +212,166 @@
 .payment-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba($bg-dark, 0.5);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
-  padding: 16px;
+  z-index: 1000;
+  padding: 24px;
 }
 
 .payment-modal {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-  max-width: 448px;
+  background: #ffffff;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  max-width: 440px;
   width: 100%;
   padding: 32px;
   position: relative;
-  animation: scaleIn 0.3s ease-out;
+  animation: scaleIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid $border-color;
 
   &.success {
     text-align: center;
+    padding: 48px 32px;
 
     .success-icon {
       font-size: 48px;
-      color: #22c55e;
-      margin-bottom: 16px;
+      color: $success;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      font-size: 20px;
+      font-weight: 800;
+      color: $text-main;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: $text-muted;
+      font-size: 14px;
     }
   }
 
   .close-btn {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 20px;
+    right: 20px;
     background: none;
     border: none;
-    color: #9ca3af;
+    color: $text-light;
     cursor: pointer;
     padding: 4px;
+    transition: $transition-fast;
 
     &:hover {
-      color: #4b5563;
+      color: $text-main;
     }
   }
 
   .modal-body {
-    text-align: center;
     margin-bottom: 24px;
 
     h3 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #1f2937;
+      font-size: 18px;
+      font-weight: 800;
+      color: $text-main;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .pkg-info {
+      color: $text-muted;
+      font-size: 14px;
       margin-bottom: 8px;
     }
 
-    p {
-      color: #6b7280;
+    .pkg-price {
+      color: $text-muted;
+      font-size: 14px;
+      margin-bottom: 20px;
+      
+      strong {
+        color: $primary;
+        font-size: 16px;
+      }
+    }
+
+    // Payment methods radio cards styling
+    .payment-method-select {
+      border-top: 1px solid $border-light;
+      padding-top: 16px;
+      text-align: left;
+
+      .section-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: $text-main;
+        margin-bottom: 10px;
+      }
+
+      .methods {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .method-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border: 1.5px solid $border-color;
+        border-radius: $radius-md;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: $text-muted;
+        cursor: pointer;
+        transition: $transition-fast;
+
+        input {
+          cursor: pointer;
+          accent-color: $primary;
+        }
+
+        &:hover {
+          border-color: rgba($primary, 0.4);
+          background-color: $border-light;
+        }
+
+        &.active {
+          border-color: $primary;
+          color: $primary;
+          background-color: $primary-light;
+        }
+      }
     }
   }
 
   .btn-confirm {
     width: 100%;
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
-    color: #fff;
-    font-weight: 600;
+    background: linear-gradient(135deg, $primary 0%, $secondary 100%);
+    color: #ffffff;
+    font-weight: 700;
     padding: 12px 24px;
-    border-radius: 12px;
+    border-radius: $radius-full;
     border: none;
     cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.2s;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba($primary, 0.2);
+    transition: $transition-smooth;
 
-    &:hover {
-      background: linear-gradient(135deg, #4338ca, #6d28d9);
+    &:hover:not(:disabled) {
+      box-shadow: 0 6px 18px rgba($primary, 0.3);
+      opacity: 0.95;
     }
 
     &:disabled {
-      opacity: 0.6;
+      background: $text-light;
       cursor: not-allowed;
+      box-shadow: none;
     }
   }
 }
@@ -287,17 +381,18 @@
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.9); }
+  from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
 
 // Responsive
 @media (max-width: 768px) {
   .pro-header .pro-title {
-    font-size: 1.75rem;
+    font-size: 24px;
   }
 
   .packages-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 }

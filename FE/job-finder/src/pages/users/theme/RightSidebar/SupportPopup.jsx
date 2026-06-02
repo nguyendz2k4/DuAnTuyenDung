@@ -15,7 +15,7 @@ export default function SupportPopup({ onClose }) {
                     <img src="/img/support.png" alt="Support" />
                     <div>
                         <h3>Ms. Hương Nguyễn</h3>
-                        <p>TopCV thường phản hồi trong vòng 24h</p>
+                        <p>TopJob thường phản hồi trong vòng 24h</p>
                     </div>
                 </div>
 
@@ -33,7 +33,7 @@ export default function SupportPopup({ onClose }) {
                         <FiPhone /> Yêu cầu hỗ trợ
                     </div>
                     <div className="menu-item">
-                        <FiPhone /> Liên hệ TopCV
+                        <FiPhone /> Liên hệ TopJob
                     </div>
                 </div>
 

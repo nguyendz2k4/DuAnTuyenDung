@@ -1,30 +1,31 @@
-// LoginForm.scss
+@import "../../../style/page/theme";
 
 .login-container {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
+    background: linear-gradient(135deg, $primary 0%, $secondary 100%);
+    padding: 24px;
 }
 
 .login-box {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 40px;
+    background: rgba(#ffffff, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: $radius-lg;
+    padding: 48px 40px;
     width: 100%;
     max-width: 440px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 50px rgba($bg-dark, 0.25);
     position: relative;
-    animation: fadeInUp 0.5s ease-out;
+    animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     border: 1px solid rgba(255, 255, 255, 0.2);
 
     @keyframes fadeInUp {
         from {
             opacity: 0;
-            transform: translateY(30px);
+            transform: translateY(24px);
         }
         to {
             opacity: 1;
@@ -33,60 +34,63 @@
     }
 }
 
-// Nút Back
+// Back button style
 .btn-back {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 24px;
+    left: 24px;
     background: none;
     border: none;
     cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 6px 12px;
+    border-radius: $radius-full;
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #666;
-    font-size: 14px;
-    transition: all 0.2s ease;
+    color: $text-muted;
+    font-size: 13px;
+    font-weight: 700;
+    transition: $transition-fast;
+    border: 1px solid $border-color;
 
     svg {
         transition: transform 0.2s ease;
     }
 
     &:hover {
-        background: #f3f4f6;
-        color: #333;
+        background: $border-light;
+        color: $primary;
+        border-color: rgba($primary, 0.3);
 
         svg {
-            transform: translateX(-3px);
+            transform: translateX(-2px);
         }
     }
 
     &:active {
-        transform: scale(0.95);
+        transform: scale(0.96);
     }
 }
 
-// Tiêu đề
 .login-title {
     text-align: center;
-    margin-bottom: 30px;
-    margin-top: 30px;
-    color: #333;
-    font-size: 28px;
-    font-weight: 600;
+    margin-bottom: 24px;
+    margin-top: 24px;
+    color: $text-main;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
-// Thông báo lỗi
 .error-message {
-    background: #fee;
-    color: #c33;
+    background: #fff5f5;
+    color: #ef4444;
     padding: 12px 16px;
-    border-radius: 8px;
+    border-radius: $radius-md;
     margin-bottom: 20px;
-    font-size: 14px;
-    border-left: 4px solid #c33;
+    font-size: 13.5px;
+    border: 1px solid #fee2e2;
+    border-left: 4px solid #ef4444;
     animation: shake 0.3s ease;
     display: flex;
     align-items: center;
@@ -94,24 +98,23 @@
 
     @keyframes shake {
         0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
     }
 }
 
-// Form đăng nhập
 .form-login {
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 18px;
 
         label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
-            font-size: 14px;
-            font-weight: 500;
+            color: $text-main;
+            font-size: 13.5px;
+            font-weight: 700;
         }
 
         .input-wrapper {
@@ -122,7 +125,7 @@
             .input-icon {
                 position: absolute;
                 left: 14px;
-                color: #9ca3af;
+                color: $text-light;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -134,20 +137,22 @@
                 padding: 12px 16px;
                 padding-left: 42px !important;
                 padding-right: 42px;
-                border: 2px solid #e5e7eb;
-                border-radius: 8px;
-                font-size: 15px;
+                border: 1.5px solid $border-color;
+                border-radius: $radius-md;
+                font-size: 14.5px;
                 outline: none;
-                transition: all 0.2s ease;
+                transition: $transition-fast;
                 box-sizing: border-box;
+                color: $text-main;
+                background-color: #ffffff;
 
                 &:focus {
-                    border-color: #667eea;
-                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                    border-color: $primary;
+                    box-shadow: 0 0 0 3px rgba($primary, 0.12);
                 }
 
                 &::placeholder {
-                    color: #9ca3af;
+                    color: $text-light;
                 }
             }
 
@@ -156,7 +161,7 @@
                 right: 14px;
                 background: none;
                 border: none;
-                color: #9ca3af;
+                color: $text-light;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
@@ -165,7 +170,7 @@
                 transition: color 0.2s;
                 
                 &:hover {
-                    color: #667eea;
+                    color: $primary;
                 }
             }
         }
@@ -174,19 +179,19 @@
     .btn-login {
         width: 100%;
         padding: 14px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(135deg, $primary 0%, $secondary 100%);
+        color: #ffffff;
         border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
+        border-radius: $radius-md;
+        font-size: 15px;
+        font-weight: 700;
         cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        transition: $transition-smooth;
+        box-shadow: 0 4px 12px rgba($primary, 0.25);
 
         &:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba($primary, 0.35);
         }
 
         &:active:not(:disabled) {
@@ -194,7 +199,7 @@
         }
 
         &:disabled {
-            background: #999;
+            background: $text-light;
             cursor: not-allowed;
             box-shadow: none;
         }
@@ -225,11 +230,10 @@
     }
 }
 
-// Divider
 .divider {
     position: relative;
     text-align: center;
-    margin: 30px 0 20px;
+    margin: 24px 0 16px;
 
     &::before {
         content: "";
@@ -238,44 +242,45 @@
         left: 0;
         right: 0;
         height: 1px;
-        background: #e5e7eb;
+        background: $border-color;
     }
 
     span {
         position: relative;
-        background: white;
+        background: #ffffff;
         padding: 0 16px;
-        color: #666;
-        font-size: 14px;
+        color: $text-muted;
+        font-size: 12.5px;
+        font-weight: 600;
     }
 }
 
-// Social login buttons
 .social-login {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 
     .btn-social {
         width: 100%;
         padding: 12px;
-        background: white;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 500;
+        background: #ffffff;
+        border: 1.5px solid $border-color;
+        border-radius: $radius-md;
+        font-size: 14px;
+        font-weight: 600;
+        color: $text-main;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 12px;
-        transition: all 0.2s ease;
+        gap: 10px;
+        transition: $transition-fast;
 
         &:hover {
-            border-color: #667eea;
-            background: #f9fafb;
+            border-color: rgba($primary, 0.4);
+            background: $border-light;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: $shadow-sm;
         }
 
         &:active {
@@ -296,45 +301,43 @@
     }
 }
 
-// Link đăng ký
 .signup-link {
     text-align: center;
     margin-top: 24px;
-    font-size: 14px;
-    color: #666;
+    font-size: 13.5px;
+    color: $text-muted;
 
     span {
         margin-right: 4px;
     }
 
     a {
-        color: #667eea;
+        color: $primary;
         text-decoration: none;
-        font-weight: 600;
-        transition: all 0.2s ease;
+        font-weight: 700;
+        transition: $transition-fast;
 
         &:hover {
             text-decoration: underline;
-            color: #764ba2;
+            color: $secondary;
         }
     }
 }
 
-// Responsive
 @media (max-width: 480px) {
     .login-box {
-        padding: 30px 20px;
+        padding: 36px 20px;
     }
 
     .login-title {
-        font-size: 24px;
-        margin-top: 40px;
+        font-size: 22px;
+        margin-top: 32px;
     }
 
     .btn-back {
-        top: 15px;
-        left: 15px;
-        font-size: 13px;
-        padding: 6px 10px;
+        top: 16px;
+        left: 16px;
+        font-size: 12px;
+        padding: 4px 10px;
     }
 }

@@ -46,7 +46,7 @@ export default function FeedbackPopup({ onClose }) {
 
                 <div className="popup-content">
                     <p className="description">
-                        Phản hồi của bạn rất quan trọng, TopCV mong nhận được nhiều góp ý từ bạn để cải thiện sản phẩm tốt hơn.
+                        Phản hồi của bạn rất quan trọng, TopJob mong nhận được nhiều góp ý từ bạn để cải thiện sản phẩm tốt hơn.
                     </p>
 
                     <div className="form-group">
@@ -71,7 +71,7 @@ export default function FeedbackPopup({ onClose }) {
                             Mô tả góp ý <span className="required">*</span>
                         </label>
                         <textarea
-                            placeholder="Mô tả góp ý của bạn giúp TopCV cải tiến sản phẩm, hỗ trợ bạn tốt hơn"
+                            placeholder="Mô tả góp ý của bạn giúp TopJob cải tiến sản phẩm, hỗ trợ bạn tốt hơn"
                             value={feedbackText}
                             onChange={(e) => setFeedbackText(e.target.value)}
                             rows={6}
@@ -79,7 +79,7 @@ export default function FeedbackPopup({ onClose }) {
                     </div>
 
                     <div className="form-group">
-                        <label>Bạn có hài lòng với TopCV không?</label>
+                        <label>Bạn có hài lòng với TopJob không?</label>
                         <div className="satisfaction-buttons">
                             {satisfactionLevels.map((level) => (
                                 <button

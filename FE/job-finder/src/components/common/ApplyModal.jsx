@@ -100,7 +100,7 @@ export default function ApplyModal({ open, onClose, job }) {
                         <div className="upload-area">
                             <div className="upload-instruction">
                                 <div className="cloud-icon">☁️</div>
-                                <span style={{ fontWeight: file ? 'bold' : 'normal', color: file ? '#00b14f' : '#333' }}>
+                                <span style={{ fontWeight: file ? 'bold' : 'normal', color: file ? '#6366f1' : '#333' }}>
                                     {file ? `Đã chọn: ${file.name}` : "Tải lên CV từ máy tính, chọn hoặc kéo thả"}
                                 </span>
                                 <p>Hỗ trợ định dạng .doc, .docx, pdf có kích thước dưới 5MB</p>
@@ -196,7 +196,7 @@ export default function ApplyModal({ open, onClose, job }) {
                     <div className="warning-box">
                         <h4 className="warning-title">⚠️ Lưu ý:</h4>
                         <ol>
-                            <li>TopCV khuyên tất cả các bạn hãy luôn cẩn trọng...</li>
+                             <li>TopJob khuyên tất cả các bạn ứng viên hãy luôn cẩn trọng trong quá trình tìm việc và tuyệt đối không chuyển tiền cho nhà tuyển dụng...</li>
                             <li>Tìm hiểu thêm kinh nghiệm phòng tránh lừa đảo <a href="#">tại đây</a>.</li>
                         </ol>
                     </div>

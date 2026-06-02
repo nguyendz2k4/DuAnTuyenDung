@@ -1,0 +1,213 @@
+@import "../../style/page/theme";
+
+.job-card-premium {
+  position: relative;
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: $radius-md;
+  padding: 16px;
+  box-shadow: $shadow-sm;
+  transition: $transition-smooth;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
+    border-color: rgba($primary, 0.4);
+
+    .job-headline a {
+      color: $primary;
+    }
+
+    .favorite-action-btn {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+
+  // Stripe bar on top of PRO jobs
+  &.is-pro-tier {
+    border-color: rgba($accent, 0.25);
+    background: linear-gradient(180deg, $accent-light 0%, $bg-card 100%);
+
+    &:hover {
+      border-color: rgba($accent, 0.5);
+      box-shadow: 0 12px 30px -4px rgba($accent, 0.12), 0 4px 12px -2px rgba($accent, 0.06);
+    }
+
+    .card-pro-stripe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #f97316 0%, #ec4899 100%);
+    }
+  }
+
+  .card-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+    position: relative;
+  }
+
+  .company-logo-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: $radius-sm;
+    border: 1px solid $border-color;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    padding: 6px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+  }
+
+  .job-details-wrapper {
+    flex: 1;
+    min-width: 0;
+    padding-right: 28px; // Leave room for absolute favorite heart button
+
+    .job-headline {
+      margin: 0 0 6px 0;
+      line-height: 1.4;
+
+      a {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 15px;
+        font-weight: 700;
+        color: $text-main;
+        text-decoration: none;
+        transition: $transition-fast;
+
+        &:hover {
+          color: $primary-hover;
+        }
+      }
+    }
+
+    .company-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+
+      .premium-pro-badge {
+        background: linear-gradient(135deg, #f97316 0%, #ec4899 100%);
+        color: #ffffff;
+        font-size: 9px;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        box-shadow: 0 2px 6px rgba(#f97316, 0.25);
+      }
+
+      .company-name-text {
+        font-size: 13px;
+        font-weight: 500;
+        color: $text-muted;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .job-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+
+      .tag-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: $radius-full;
+        font-size: 11px;
+        font-weight: 600;
+        transition: $transition-fast;
+
+        &.salary-pill {
+          color: $primary;
+          background: $primary-light;
+        }
+
+        &.location-pill {
+          color: $text-muted;
+          background: $border-light;
+        }
+      }
+    }
+  }
+
+  // Favorite icon container
+  .favorite-action-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid $border-color;
+    background: #ffffff;
+    color: $text-light;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: $transition-smooth;
+    box-shadow: $shadow-sm;
+
+    &:hover {
+      border-color: rgba($primary, 0.3);
+      color: #ef4444; // Rose red on hover
+      background: #fff5f5;
+    }
+
+    &:active {
+      transform: scale(0.92);
+    }
+
+    &.is-active {
+      background: #fff5f5;
+      border-color: #fca5a5;
+      color: #ef4444;
+      animation: heartbeat 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+  }
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.25);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

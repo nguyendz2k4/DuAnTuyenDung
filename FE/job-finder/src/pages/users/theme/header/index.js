@@ -6,7 +6,7 @@ import { IoIosSearch, IoIosList } from "react-icons/io";
 import { useAuth } from "../../../../context/AuthContext";
 import { ROUTES } from "../../../../utils/router";
 import JoblistDropdown from "./JoblistDropdown";
-import logo from "../../../../assets/imgs/logo/topcv-logo-6.png";
+import BrandLogo from "../../../../components/common/BrandLogo";
 import "./style.scss";
 
 const Header = () => {
@@ -43,9 +43,7 @@ const Header = () => {
         <header className="header-container">
             <div className="header-top">
                 <div className="header-left">
-                    <Link to={ROUTES.USER.HOME}>
-                        <img src={logo} alt="TopCV Logo" className="logo" />
-                    </Link>
+                    <BrandLogo />
                 </div>
                 {/* NAVIGATION MENU */}
                 <nav className="header-nav">
