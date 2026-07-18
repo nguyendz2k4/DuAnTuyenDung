@@ -42,7 +42,7 @@ namespace DoAnTotNghiep.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            using var transaction = _context.Database.BeginTransaction();
+            await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var appUser = new ApplicationUser
@@ -58,11 +58,16 @@ namespace DoAnTotNghiep.Controllers
                     return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
                 }
 
+                var roleResult = await _userManager.AddToRoleAsync(appUser, "JobSeeker");
+                if (!roleResult.Succeeded)
+                {
+                    return StatusCode(500, new { Errors = roleResult.Errors.Select(e => e.Description) });
+                }
+
                 var domainUser = new User
                 {
                     IdentityUserId = appUser.Id,
                     FullName = model.FullName,
-                    AccountType = model.AccountType,
                     Status = 1,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
@@ -94,9 +99,9 @@ namespace DoAnTotNghiep.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginRequestDTO model)
         {
-            var appUser = await _userManager.FindByEmailAsync(model.UserName); 
-            if (appUser == null)
-                appUser = await _userManager.FindByNameAsync(model.UserName); 
+            var appUser = await _userManager.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Email == model.UserName || u.UserName == model.UserName);
 
             if (appUser == null) return Unauthorized(new { Message = "Tài khoản không tồn tại" });
             var result = await _signInManager.CheckPasswordSignInAsync(appUser, model.Password, false);
@@ -111,7 +116,8 @@ namespace DoAnTotNghiep.Controllers
             }
 
             // B4: Tạo JWT Token
-            var token = GenerateJwtToken(appUser, userProfile);
+            var token = await GenerateJwtTokenAsync(appUser, userProfile);
+            var role = await GetPrimaryRoleAsync(appUser);
 
             return Ok(new LoginResponseDTO
             {
@@ -123,7 +129,7 @@ namespace DoAnTotNghiep.Controllers
                     Email = appUser.Email,
                     UserName = appUser.UserName,
                     Avatar = userProfile.Avatar,
-                    Role = userProfile.AccountType
+                    Role = role
                 }
             });
         }
@@ -144,8 +150,11 @@ namespace DoAnTotNghiep.Controllers
 
             var profile = await _context.DomainUsers.FirstOrDefaultAsync(u => u.IdentityUserId == adminapp.Id);
             if (profile == null) return Unauthorized(new { Message = "Không tìm thấy hồ sơ" });
-            if (profile.AccountType != "Admin") return Unauthorized(new { Message = "Bạn không có quyền truy cập." });
-            var token = GenerateJwtToken(adminapp, profile);
+            if (!await _userManager.IsInRoleAsync(adminapp, "Admin"))
+                return Unauthorized(new { Message = "Bạn không có quyền truy cập." });
+
+            var token = await GenerateJwtTokenAsync(adminapp, profile);
+            var role = await GetPrimaryRoleAsync(adminapp);
 
             return Ok(new LoginResponseDTO
             { 
@@ -157,7 +166,7 @@ namespace DoAnTotNghiep.Controllers
                     Email = adminapp.Email,
                     UserName = adminapp.UserName,
                     Avatar = profile.Avatar,
-                    Role = profile.AccountType
+                    Role = role
                 }
             });
         }
@@ -199,13 +208,15 @@ namespace DoAnTotNghiep.Controllers
                     var createResult = await _userManager.CreateAsync(appUser);
                     if (!createResult.Succeeded) throw new Exception("Không thể tạo tài khoản Identity");
 
+                    var roleResult = await _userManager.AddToRoleAsync(appUser, "JobSeeker");
+                    if (!roleResult.Succeeded) throw new Exception("Không thể gán role JobSeeker");
+
                     await _userManager.AddLoginAsync(appUser, new UserLoginInfo("Google", googleId, "Google"));
 
                     domainUser = new User
                     {
                         IdentityUserId = appUser.Id,
                         FullName = fullName,
-                        AccountType = "JobSeeker",
                         GoogleId = googleId,
                         Avatar = avatar,
                         Status = 1,
@@ -251,14 +262,15 @@ namespace DoAnTotNghiep.Controllers
                 return BadRequest("Lỗi đồng bộ dữ liệu người dùng.");
             }
 
-            var token = GenerateJwtToken(appUser, domainUser);
+            var token = await GenerateJwtTokenAsync(appUser, domainUser);
+            var role = await GetPrimaryRoleAsync(appUser);
 
             var userInfo = new
             {
                 Id = domainUser.UserId,
                 FullName = domainUser.FullName,
                 Email = appUser.Email,
-                Role = domainUser.AccountType,
+                Role = role,
                 Avatar = domainUser.Avatar
             };
 
@@ -276,7 +288,7 @@ namespace DoAnTotNghiep.Controllers
         }
 
         // --- HÀM TẠO TOKEN ---
-        private string GenerateJwtToken(ApplicationUser appUser, User userProfile)
+        private async Task<string> GenerateJwtTokenAsync(ApplicationUser appUser, User userProfile)
         {
             var claims = new List<Claim>
             {
@@ -285,9 +297,11 @@ namespace DoAnTotNghiep.Controllers
                 new Claim(ClaimTypes.NameIdentifier, appUser.Id),
                 new Claim("UserId", userProfile.UserId.ToString()),
                 new Claim("FullName", userProfile.FullName ?? ""),
-                new Claim(ClaimTypes.Role, userProfile.AccountType ?? "User"),
                 new Claim(ClaimTypes.Email, appUser.Email ?? "")
             };
+
+            var roles = await _userManager.GetRolesAsync(appUser);
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
                 _configuration["Jwt:Key"] ?? "Day_La_Key_Bi_Mat_Cua_Ban_Phai_Rat_Dai_Nhe_@@@123"));
@@ -303,6 +317,12 @@ namespace DoAnTotNghiep.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private async Task<string> GetPrimaryRoleAsync(ApplicationUser appUser)
+        {
+            var roles = await _userManager.GetRolesAsync(appUser);
+            return roles.FirstOrDefault() ?? string.Empty;
         }
     }
 }

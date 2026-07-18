@@ -21,6 +21,12 @@ export default function SignIn() {
     try {
       const { data } = await authService.adminLogin(email, password);
 
+      const role = String(data.user?.role ?? "").toLowerCase();
+      if (role !== "admin") {
+        setError("Tài khoản này không có quyền truy cập khu vực quản trị.");
+        return;
+      }
+
       // Lưu session qua AuthContext (tự động sync localStorage)
       login(data.token, {
         userId: (data.user?.id || data.user?.userId || "").toString(),

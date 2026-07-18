@@ -55,8 +55,14 @@ export const AuthProvider = ({ children }) => {
    * @param {object} userData - Thông tin user
    */
   const login = useCallback((newToken, userData) => {
+    const normalizedUser = {
+      ...userData,
+      id: userData?.id || userData?.userId || userData?.user_id,
+      full_name: userData?.full_name || userData?.fullName || userData?.name,
+      role: userData?.role || userData?.accountType || userData?.account_type,
+    };
     setToken(newToken);
-    setUser(userData);
+    setUser(normalizedUser);
   }, []);
 
   /**

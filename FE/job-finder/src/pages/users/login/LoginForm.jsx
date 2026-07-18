@@ -29,7 +29,8 @@ export default function LoginForm() {
 
             // Lưu vào AuthContext (tự động sync localStorage)
             login(data.token, data.user);
-            navigate(redirectTo);
+            const role = String(data.user?.role || data.user?.account_type || "").toLowerCase();
+            navigate(role === "employer" ? ROUTES.EMPLOYER.HOME : redirectTo);
             
         } catch (err) {
             if (err.response && err.response.data) {

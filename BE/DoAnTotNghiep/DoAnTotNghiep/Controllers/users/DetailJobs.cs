@@ -23,9 +23,10 @@ namespace DoAnTotNghiep.Controllers.users
         public async Task<ActionResult<JobDto>> Detail(int id)
         {
             var jobPost = await _context.JobPosts
+                .AsNoTracking()
                 .Include(j => j.Category)
                 .Include(j => j.Employer)
-                    .ThenInclude(e => e.Industry)
+                    .ThenInclude(e => e!.Industry)
                 .FirstOrDefaultAsync(j => j.JobId == id);
 
             if (jobPost == null)

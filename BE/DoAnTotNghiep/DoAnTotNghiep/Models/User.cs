@@ -14,9 +14,6 @@ public class User
     [Column("avatar")]
     public string? Avatar { get; set; }
 
-    [Column("account_type")]
-    public string? AccountType { get; set; }
-
     [Column("google_id")]
     public string? GoogleId { get; set; }
 

@@ -53,8 +53,8 @@ const Header = () => {
                         </div>
                         <div className="dropdown-menu">
                             <Link to={ROUTES.USER.HOME} className="dropdown-item">Việc làm mới nhất</Link>
-                            <Link to={ROUTES.USER.FAVORITE_JOBS} className="dropdown-item">Việc làm đã lưu</Link>
-                            <Link to={ROUTES.USER.APPLIED_JOBS} className="dropdown-item">
+                            <Link to={ROUTES.CANDIDATE.FAVORITE_JOBS} className="dropdown-item">Việc làm đã lưu</Link>
+                            <Link to={ROUTES.CANDIDATE.APPLIED_JOBS} className="dropdown-item">
                                 Việc làm đã ứng tuyển
                             </Link>
                         </div>
@@ -109,9 +109,9 @@ const Header = () => {
 
                             {/* 3. Phần Nhà Tuyển Dụng */}
                             <div className="employer-section">
-                                <span className="emp-text">Bạn là nhà tuyển dụng?</span>
-                                <Link to="/employer/post-job" className="emp-link">
-                                    Đăng tuyển ngay &raquo;
+                                <span className="emp-text">{String(currentUser.role || currentUser.account_type || "").toLowerCase() === "employer" ? "Khu vực tuyển dụng" : "Bạn là nhà tuyển dụng?"}</span>
+                                <Link to={String(currentUser.role || currentUser.account_type || "").toLowerCase() === "employer" ? ROUTES.EMPLOYER.HOME : ROUTES.USER.REGISTER} className="emp-link">
+                                    {String(currentUser.role || currentUser.account_type || "").toLowerCase() === "employer" ? "Vào dashboard »" : "Đăng ký ngay »"}
                                 </Link>
                             </div>
                         </>

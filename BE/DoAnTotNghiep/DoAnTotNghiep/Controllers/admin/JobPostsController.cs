@@ -26,6 +26,9 @@ namespace DoAnTotNghiep.Controllers.admin
                 var employer = await _context.Employers.FirstOrDefaultAsync(e => e.EmployerId == model.EmployerId);
                 if (employer == null) return NotFound("Nhà tuyển dụng không tồn tại!");
 
+                if (!model.CategoryId.HasValue)
+                    return BadRequest("Vui lòng chọn loại ngành nghề.");
+
                 var category = await _context.JobCategories.FirstOrDefaultAsync(c => c.CategoryId == model.CategoryId);
                 if (category == null) return NotFound("Loại nghành nghề không tồn tại!");
 
@@ -39,6 +42,7 @@ namespace DoAnTotNghiep.Controllers.admin
                            t.UserId == employer.UserId &&
                            t.Status == "completed" &&
                            t.ServicePackage != null &&
+                           t.CreatedAt.HasValue &&
                            t.CreatedAt.Value.AddDays(t.ServicePackage.DurationDays ?? 0) >= now
                       );
 
@@ -68,13 +72,13 @@ namespace DoAnTotNghiep.Controllers.admin
 
                 if(transaction != null)
                 {
-
+                    var durationDays = transaction.ServicePackage?.DurationDays ?? 0;
                     var feature = new JobPostFeature
                     {
                         JobId = jobPost.JobId,
                         FeatureType = "Pro",
                         StartDate = now,
-                        EndDate = now.AddDays(transaction.ServicePackage.DurationDays ?? 0),
+                        EndDate = now.AddDays(durationDays),
                         Priority = 1
                     };
                     _context.JobPostFeatures.Add(feature);

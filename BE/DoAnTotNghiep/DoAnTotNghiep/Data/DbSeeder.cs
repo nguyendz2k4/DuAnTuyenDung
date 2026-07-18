@@ -1,66 +1,195 @@
-﻿using Microsoft.AspNetCore.Identity;
-using DoAnTotNghiep.Models;
-using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection; 
+﻿using DoAnTotNghiep.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DoAnTotNghiep.Data
 {
-    public class DbSeeder
+    public static class DbSeeder
     {
-        public static async Task SeedAdminUserAsync(IServiceProvider serviceProvider)
+        public static async Task SeedAdminUserAsync(
+            IServiceProvider serviceProvider)
         {
-            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager =
+                serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-            var dbContext = serviceProvider.GetRequiredService<AppDbContext>();
+            var roleManager =
+                serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            if (!await roleManager.RoleExistsAsync("Admin"))
+            var dbContext =
+                serviceProvider.GetRequiredService<AppDbContext>();
+
+            var configuration =
+                serviceProvider.GetRequiredService<IConfiguration>();
+
+            var adminEmail =
+                configuration["AdminAccount:Email"]
+                ?? throw new InvalidOperationException(
+                    "Chưa cấu hình AdminAccount:Email.");
+
+            var adminPassword =
+                configuration["AdminAccount:Password"]
+                ?? throw new InvalidOperationException(
+                    "Chưa cấu hình AdminAccount:Password.");
+
+            await using var transaction =
+                await dbContext.Database.BeginTransactionAsync();
+
+            try
             {
-                await roleManager.CreateAsync(new IdentityRole("Admin"));
-            }
-
-            var adminEmail = "votrung920@gmail.com";
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
-            if (adminUser == null)
-            {
-                adminUser = new ApplicationUser
+                var roleNames = new[]
                 {
-                    UserName = adminEmail,
-                    Email = adminEmail,
-                    EmailConfirmed = true
+                    "Admin",
+                    "Employer",
+                    "JobSeeker"
                 };
 
-                var result = await userManager.CreateAsync(adminUser, "Nguyen1672004@");
-
-                if (result.Succeeded)
+                foreach (var roleName in roleNames)
                 {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                    if (await roleManager.RoleExistsAsync(roleName))
+                    {
+                        continue;
+                    }
 
-                    var customUser = new User
+                    var createRoleResult =
+                        await roleManager.CreateAsync(
+                            new IdentityRole
+                            {
+                                Name = roleName
+                            });
+
+                    EnsureIdentitySucceeded(
+                        createRoleResult,
+                        $"Không thể tạo role {roleName}");
+                }
+
+                // Bước 2: Đảm bảo tài khoản Identity tồn tại
+                var adminUser =
+                    await userManager.FindByEmailAsync(adminEmail);
+
+                if (adminUser == null)
+                {
+                    adminUser = new ApplicationUser
+                    {
+                        UserName = adminEmail,
+                        Email = adminEmail,
+                        EmailConfirmed = true
+                    };
+
+                    var createUserResult =
+                        await userManager.CreateAsync(
+                            adminUser,
+                            adminPassword);
+
+                    EnsureIdentitySucceeded(
+                        createUserResult,
+                        "Không thể tạo tài khoản admin");
+                }
+                else if (!await userManager.CheckPasswordAsync(
+                    adminUser,
+                    adminPassword))
+                {
+                    var resetPasswordResult =
+                        await userManager.ResetPasswordAsync(
+                            adminUser,
+                            await userManager.GeneratePasswordResetTokenAsync(adminUser),
+                            adminPassword);
+
+                    EnsureIdentitySucceeded(
+                        resetPasswordResult,
+                        "Không thể đồng bộ mật khẩu admin từ cấu hình");
+                }
+
+                // Bước 3: Đảm bảo tài khoản có role Admin
+                if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+                {
+                    var addRoleResult =
+                        await userManager.AddToRoleAsync(
+                            adminUser,
+                            "Admin");
+
+                    EnsureIdentitySucceeded(
+                        addRoleResult,
+                        "Không thể gán role Admin");
+                }
+
+                // Bước 4: Đảm bảo domain User tồn tại
+                var customUser = await dbContext.DomainUsers
+                    .FirstOrDefaultAsync(
+                        user => user.IdentityUserId == adminUser.Id);
+
+                var now = DateTime.UtcNow;
+
+                if (customUser == null)
+                {
+                    customUser = new User
                     {
                         IdentityUserId = adminUser.Id,
                         FullName = "Võ Trung Nguyên",
-                        AccountType = "Admin",
                         Status = 1,
-                        CreatedAt = DateTime.Now,
-                        UpdatedAt = DateTime.Now
+                        CreatedAt = now,
+                        UpdatedAt = now
                     };
-                    dbContext.Set<User>().Add(customUser);
-                    await dbContext.SaveChangesAsync();
 
-                    var userProfile = new UserProfile
+                    dbContext.DomainUsers.Add(customUser);
+                    await dbContext.SaveChangesAsync();
+                }
+                else
+                {
+                    customUser.Status = 1;
+                    customUser.UpdatedAt = now;
+                }
+
+                // Bước 5: Đảm bảo UserProfile tồn tại
+                var userProfile = await dbContext.UserProfiles
+                    .FirstOrDefaultAsync(
+                        profile => profile.UserId == customUser.UserId);
+
+                if (userProfile == null)
+                {
+                    userProfile = new UserProfile
                     {
                         UserId = customUser.UserId,
                         FullName = customUser.FullName,
-                        CreatedAt = DateTime.Now,
-                        UpdatedAt = DateTime.Now
+                        CreatedAt = now,
+                        UpdatedAt = now
                     };
+
                     dbContext.UserProfiles.Add(userProfile);
-                    await dbContext.SaveChangesAsync();
                 }
+                else
+                {
+                    userProfile.FullName = customUser.FullName;
+                    userProfile.UpdatedAt = now;
+                }
+
+                await dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
             }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        private static void EnsureIdentitySucceeded(
+            IdentityResult result,
+            string message)
+        {
+            if (result.Succeeded)
+            {
+                return;
+            }
+
+            var errors = string.Join(
+                "; ",
+                result.Errors.Select(error =>
+                    $"{error.Code}: {error.Description}"));
+
+            throw new InvalidOperationException(
+                $"{message}. Chi tiết: {errors}");
         }
     }
 }

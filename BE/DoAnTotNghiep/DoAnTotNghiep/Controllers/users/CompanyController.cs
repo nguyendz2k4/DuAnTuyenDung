@@ -20,12 +20,13 @@ namespace DoAnTotNghiep.Controllers.users
         public async Task<ActionResult<List<CompanyListDto>>> GetEmployers()
         {
             var result = await _context.JobPosts
+                .AsNoTracking()
                 .Where(j => j.EmployerId != null) 
                 .GroupBy(j => new
                 {
                     j.EmployerId,
-                    j.Employer.CompanyName,
-                    j.Employer.Logo
+                    CompanyName = j.Employer != null ? j.Employer.CompanyName : null,
+                    Logo = j.Employer != null ? j.Employer.Logo : null
                 })
                 .Select(g => new CompanyListDto
                 {

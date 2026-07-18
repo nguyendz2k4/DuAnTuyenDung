@@ -21,18 +21,14 @@ namespace DoAnTotNghiep.Controllers.admin
         [HttpGet("{id}")]
         public async Task<ActionResult<UserInfor>> Profile(int id)
         {
-            var user = await _context.DomainUsers.FirstOrDefaultAsync(u => u.UserId == id);
+            var user = await _context.DomainUsers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (user == null)
+                return NotFound();
+
             var result = _mapper.Map<UserInfor>(user);
-
-            if (user.AccountType == "Employer")
-            {
-                var employer = await _context.Employers
-                    .Include(e => e.Industry)
-                    .FirstOrDefaultAsync(e => e.UserId == id);
-
-                if (employer != null)
-                    _mapper.Map(employer, result);
-            }
 
             return Ok(result);
         }

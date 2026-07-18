@@ -1,4 +1,4 @@
-import api from './api';
+import api, { API_HOST } from './api';
 
 const applicationService = {
   /**
@@ -19,6 +19,14 @@ const applicationService = {
    */
   getAppliedJobs: (params) => {
     return api.get('/applications', { params });
+  },
+
+  getEmployerApplications: (employerId) => {
+    return api.get(`${API_HOST}/api/admin/applications`, { params: { employer_id: employerId } });
+  },
+
+  updateEmployerApplicationStatus: (applicationId, status) => {
+    return api.post(`${API_HOST}/api/admin/applications/status`, { application_id: applicationId, status });
   },
 };
 

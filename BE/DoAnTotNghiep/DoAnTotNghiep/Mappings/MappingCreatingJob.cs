@@ -14,7 +14,5 @@ namespace DoAnTotNghiep.Mappings
                 .ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => (short)0))
                 .ForMember(dest => dest.ViewCount, otp => otp.MapFrom(src => 0));
         }
-
-
     }
 }

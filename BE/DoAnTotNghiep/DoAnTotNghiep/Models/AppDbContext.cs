@@ -58,8 +58,6 @@ public partial class AppDbContext : IdentityDbContext<ApplicationUser>
 
             entity.Property(e => e.FullName).HasMaxLength(100).HasColumnName("full_name");
             entity.Property(e => e.Avatar).HasMaxLength(500).HasColumnName("avatar");
-            entity.Property(e => e.AccountType).HasDefaultValue("normal").HasMaxLength(50).HasColumnName("account_type");
-
             entity.Property(e => e.GoogleId).HasMaxLength(255).HasColumnName("google_id");
             entity.Property(e => e.FacebookId).HasMaxLength(255).HasColumnName("facebook_id");
 

@@ -17,7 +17,6 @@ namespace DoAnTotNghiep.DTO.users
         [Required(ErrorMessage = "Họ tên là bắt buộc")]
         public required string FullName { get; set; }
 
-        public string? AccountType { get; set; } = "JobSeeker";
     }
     public class RegisterResponseDTO
     {

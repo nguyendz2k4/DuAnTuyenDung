@@ -34,10 +34,10 @@ namespace DoAnTotNghiep.Controllers.users
 
             // --- BƯỚC 1: QUERY ---
             var query =
-                from jp in _context.JobPosts
-                join e in _context.Employers on jp.EmployerId equals e.EmployerId into emp
+                from jp in _context.JobPosts.AsNoTracking()
+                join e in _context.Employers.AsNoTracking() on jp.EmployerId equals e.EmployerId into emp
                 from e in emp.DefaultIfEmpty()
-                join jpf in _context.JobPostFeatures.Where(x => x.FeatureType == "pro" && x.EndDate > now)
+                join jpf in _context.JobPostFeatures.AsNoTracking().Where(x => x.FeatureType == "pro" && x.EndDate > now)
                     on jp.JobId equals jpf.JobId into feat
                 from jpf in feat.DefaultIfEmpty()
                 where jp.Status == "active" && jp.IsApproved == 1

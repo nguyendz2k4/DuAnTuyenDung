@@ -1,4 +1,4 @@
-import api from './api';
+import api, { API_HOST } from './api';
 
 const jobService = {
   /**
@@ -50,6 +50,12 @@ const jobService = {
    */
   registerPackage: (data) => {
     return api.post('/packages/register', data);
+  },
+
+  createJobPost: (formData) => {
+    return api.post(`${API_HOST}/admin/JobPosts/jobpost`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
 };
 

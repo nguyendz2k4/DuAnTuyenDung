@@ -2,7 +2,9 @@ import { Routes, Route } from "react-router-dom";
 import { ROUTES } from "./utils/router";
 
 // Layouts
-import MasterLayout from "./pages/users/theme/masterLayout";
+import PublicLayout from "./layouts/PublicLayout";
+import CandidateLayout from "./layouts/CandidateLayout";
+import EmployerLayout from "./layouts/EmployerLayout";
 
 // Pages
 import HomePage from "./pages/users/homePage";
@@ -13,6 +15,10 @@ import LoginForm from "./pages/users/login/LoginForm";
 import RegisterForm from "./pages/users/login/Registerform";
 import GoogleCallback from "./pages/users/login/GoogleCallback";
 import RegisterPro from "./pages/users/topcvPro/TopCVProRegister";
+import EmployerDashboardPage from "./pages/employer/EmployerDashboardPage";
+import EmployerPostJobPage from "./pages/employer/EmployerPostJobPage";
+import EmployerApplicationsPage from "./pages/employer/EmployerApplicationsPage";
+import EmployerProfilePage from "./pages/employer/EmployerProfilePage";
 
 // Guards
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -24,9 +30,9 @@ const RouterCustom = () => {
             <Route
                 path={ROUTES.USER.HOME}
                 element={
-                    <MasterLayout>
+                    <PublicLayout>
                         <HomePage />
-                    </MasterLayout>
+                    </PublicLayout>
                 }
             />
 
@@ -34,32 +40,32 @@ const RouterCustom = () => {
             <Route
                 path={ROUTES.USER.JOB_DETAIL}
                 element={
-                    <MasterLayout>
+                    <PublicLayout>
                         <DetailJob />
-                    </MasterLayout>
+                    </PublicLayout>
                 }
             />
 
             {/* Trang việc làm đã ứng tuyển (cần đăng nhập) */}
             <Route
-                path={ROUTES.USER.APPLIED_JOBS}
+                path={ROUTES.CANDIDATE.APPLIED_JOBS}
                 element={
-                    <ProtectedRoute>
-                        <MasterLayout>
+                    <ProtectedRoute allowedRoles={["jobseeker", "candidate"]}>
+                        <CandidateLayout>
                             <AppliedJobs />
-                        </MasterLayout>
+                        </CandidateLayout>
                     </ProtectedRoute>
                 }
             />
 
             {/* Trang việc làm yêu thích (cần đăng nhập) */}
             <Route
-                path={ROUTES.USER.FAVORITE_JOBS}
+                path={ROUTES.CANDIDATE.FAVORITE_JOBS}
                 element={
-                    <ProtectedRoute>
-                        <MasterLayout>
+                    <ProtectedRoute allowedRoles={["jobseeker", "candidate"]}>
+                        <CandidateLayout>
                             <FavoriteJobs />
-                        </MasterLayout>
+                        </CandidateLayout>
                     </ProtectedRoute>
                 }
             />
@@ -73,17 +79,22 @@ const RouterCustom = () => {
             <Route
                 path={ROUTES.USER.TOPCV_PRO}
                 element={
-                    <ProtectedRoute>
-                        <RegisterPro />
+                    <ProtectedRoute allowedRoles={["jobseeker", "candidate"]}>
+                        <CandidateLayout><RegisterPro /></CandidateLayout>
                     </ProtectedRoute>
                 }
             />
+
+            <Route path={ROUTES.EMPLOYER.HOME} element={<ProtectedRoute allowedRoles={["employer"]}><EmployerLayout><EmployerDashboardPage /></EmployerLayout></ProtectedRoute>} />
+            <Route path={ROUTES.EMPLOYER.POST_JOB} element={<ProtectedRoute allowedRoles={["employer"]}><EmployerLayout><EmployerPostJobPage /></EmployerLayout></ProtectedRoute>} />
+            <Route path={ROUTES.EMPLOYER.APPLICATIONS} element={<ProtectedRoute allowedRoles={["employer"]}><EmployerLayout><EmployerApplicationsPage /></EmployerLayout></ProtectedRoute>} />
+            <Route path={ROUTES.EMPLOYER.PROFILE} element={<ProtectedRoute allowedRoles={["employer"]}><EmployerLayout><EmployerProfilePage /></EmployerLayout></ProtectedRoute>} />
 
             {/* 404 - Not Found */}
             <Route
                 path="*"
                 element={
-                    <MasterLayout>
+                    <PublicLayout>
                         <div style={{
                             textAlign: "center",
                             padding: "80px 20px",
@@ -98,7 +109,7 @@ const RouterCustom = () => {
                                 Trang bạn tìm kiếm không tồn tại
                             </p>
                         </div>
-                    </MasterLayout>
+                    </PublicLayout>
                 }
             />
         </Routes>

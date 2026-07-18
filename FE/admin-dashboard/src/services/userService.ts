@@ -26,7 +26,7 @@ const userService = {
    * Thêm tài khoản mới (FormData cho upload logo)
    */
   addUser: (formData: FormData) => {
-    return api.post("/api/admin/users", formData, {
+    return api.post("/admin/ManagementAcc/account-manage", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
